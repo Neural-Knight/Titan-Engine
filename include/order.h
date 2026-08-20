@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <map>
 #include <list>
+#include <vector>
 
 enum class Side
 {
@@ -33,12 +34,20 @@ struct OrderLocation
     OrderList::iterator it;
 };
 
+struct Trade {
+    OrderId incomingOrderId;
+    OrderId restingOrderId;
+    Price price;
+    Quantity quantity;
+};
+
 class OrderBook
 {
 private:
     PriceLevels bids;
     PriceLevels asks;
     std::map<OrderId, OrderLocation> orderTable;
+    void removeOrder(OrderId id);
 
 public:
     void addOrder(const Order &order);
@@ -50,6 +59,8 @@ public:
 
     Price bestBid() const;
     Price bestAsk() const;
+
+    std::vector<Trade> matchOrder(Order incoming);
 };
 
 #endif
