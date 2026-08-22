@@ -13,6 +13,24 @@ compile_commands.json
 CTestTestfile.cmake
 install_manifest.txt
 Testing/
+CMakeUserPresets.json
+
+# clangd / editor tooling caches
+.cache/
+.clangd/
+
+# Coverage and profiling instrumentation output
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+
+# perf (Linux) output, if a bench is profiled in-place
+perf.data
+perf.data.old
+
+# Stray build/test logs left in the repo instead of /tmp
+*.log
 
 # Compiled objects and binaries
 *.o

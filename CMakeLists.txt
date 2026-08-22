@@ -85,5 +85,18 @@ target_include_directories(titan_bench
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# titan_itch: ITCH 5.0 framing/decoding. Ingestion only, no book reconstruction.
+add_library(titan_itch STATIC
+	src/feed/itch/parser.cpp
+	src/feed/itch/decoder.cpp
+)
+
+target_include_directories(titan_itch
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
+add_subdirectory(tools)
