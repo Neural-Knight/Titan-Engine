@@ -1,5 +1,6 @@
-# CMake build directories
+# CMake build directories (build/, build-rel/, build-anything/, etc.)
 build/
+build-*/
 cmake-build-*/
 
 # CMake generated files
@@ -7,6 +8,7 @@ CMakeCache.txt
 CMakeFiles/
 # Only ignore CMake-generated Makefiles inside build dirs, not our root Makefile.
 build/Makefile
+build-*/Makefile
 cmake-build-*/Makefile
 cmake_install.cmake
 compile_commands.json
@@ -48,4 +50,5 @@ perf.data.old
 # Editors and IDEs
 .vscode/
 .idea/
+.cursor/
 *.swp

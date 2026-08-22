@@ -1,6 +1,5 @@
 # Benchmark environment (baseline.json)
 
-- **Date**: 2026-08-22
 - **OS**: macOS 26.5.1 (Darwin 25.5.0, arm64)
 - **CPU**: Apple M5 Pro, 18 logical CPUs
 - **RAM**: 48 GiB
@@ -21,6 +20,21 @@ This does not affect the actual `steady_clock`-based timings (Google Benchmark's
 
 - **macOS**: to reduce thermal/frequency-scaling noise before a benchmark run, sample `sudo powermetrics --samplers cpu_power -i 1000 -n 5` beforehand to confirm the CPU isn't already thermally throttled, and close other heavy apps. There is no user-facing P-state pin on Apple silicon equivalent to Linux's `cpupower frequency-set`.
 - **Linux** (for future runs on Linux CI/hardware): pin governor with `sudo cpupower frequency-set --governor performance`, and prefer `perf stat -d ./bench_match` for cache/branch-miss detail; `perf record -g ./bench_match && perf report` for flamegraphs. Not exercised on this machine -- macOS has no `perf`.
+
+## Optional Release benchmark profile (Module 15)
+
+By default this CMakeLists still applies no `-O` flags anywhere (as above).
+To build benchmark binaries and their direct library deps with `-O2 -DNDEBUG`
+instead, opt in via a separate build directory:
+
+```
+cmake -S . -B build-rel -DTITAN_BENCHMARK_RELEASE=ON
+cmake --build build-rel
+```
+
+`titan_tests` is unaffected either way, so `cmake -S . -B build && make test`
+keeps its current debug-equivalent timing. See
+`docs/benchmark-results/module-15-tuning.md` for Debug-vs-Release numbers.
 
 ## Reproducing this baseline
 

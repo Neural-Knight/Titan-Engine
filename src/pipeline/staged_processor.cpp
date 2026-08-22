@@ -1,10 +1,9 @@
 #include "titan/pipeline/staged_processor.hpp"
 
 #include <chrono>
+#include <cstdlib>
 
-#ifdef __linux__
-#include <pthread.h>
-#endif
+#include "titan/platform/thread_affinity.hpp"
 
 namespace titan {
 
@@ -23,23 +22,11 @@ StagedProcessor::~StagedProcessor()
         stop();
 }
 
-void StagedProcessor::pinThread(std::thread& thread, int cpu)
-{
-#ifdef __linux__
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpu, &cpuset);
-    pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set_t), &cpuset);
-#else
-    (void)thread;
-    (void)cpu;  // macOS has no public sched_setaffinity equivalent -- no-op here
-#endif
-}
-
 void StagedProcessor::start()
 {
     consumer_ = std::thread(&StagedProcessor::consumerLoop, this);
-    pinThread(consumer_, 1);
+    if (const char* cpuEnv = std::getenv("TITAN_PIN_CONSUMER_CPU"))
+        pinThread(consumer_, std::atoi(cpuEnv));  // no-op false off Linux, ignored if unset
 }
 
 void StagedProcessor::stop()

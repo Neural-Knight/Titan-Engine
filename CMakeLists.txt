@@ -8,6 +8,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 enable_testing()
 
+# Off by default: default build stays debug-equivalent (no -O flags).
+option(TITAN_BENCHMARK_RELEASE "Build benchmarks + their libs with -O2 -DNDEBUG" OFF)
+
+# Applies -O2 -DNDEBUG to one target, only when the option above is ON.
+function(titan_apply_release_flags target)
+	if(TITAN_BENCHMARK_RELEASE)
+		target_compile_options(${target} PRIVATE -O2)
+		target_compile_definitions(${target} PRIVATE NDEBUG)
+	endif()
+endfunction()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -38,6 +49,7 @@ target_include_directories(titan_reference
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
+titan_apply_release_flags(titan_reference)
 
 # titan_optimized: OptimizedMatcher, a drop-in IMatcher. No dependency on
 # titan_exchange -- instrument_registry.cpp (in titan_exchange) depends on
@@ -51,6 +63,7 @@ target_include_directories(titan_optimized
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
+titan_apply_release_flags(titan_optimized)
 
 # titan_exchange: OrderManager + Validator, layered on top of IMatcher.
 add_library(titan_exchange STATIC
@@ -64,6 +77,7 @@ target_link_libraries(titan_exchange
 		titan_reference
 		titan_optimized
 )
+titan_apply_release_flags(titan_exchange)
 
 # titan_book: cross-cutting book invariants, checked against both layers.
 add_library(titan_book STATIC
@@ -74,6 +88,7 @@ target_link_libraries(titan_book
 	PUBLIC
 		titan_exchange
 )
+titan_apply_release_flags(titan_book)
 
 # titan_market_data: derives ExecutionReports from InstrumentRegistry's event log.
 add_library(titan_market_data STATIC
@@ -85,6 +100,7 @@ target_include_directories(titan_market_data
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
+titan_apply_release_flags(titan_market_data)
 
 # titan_bench: histogram + harness + scenario loader, used by benchmarks/.
 add_library(titan_bench STATIC
@@ -98,6 +114,7 @@ target_include_directories(titan_bench
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
+titan_apply_release_flags(titan_bench)
 
 # titan_itch: ITCH 5.0 framing/decoding + feed-side book reconstruction.
 add_library(titan_itch STATIC
@@ -134,6 +151,22 @@ target_link_libraries(titan_replay
 
 find_package(Threads REQUIRED)
 
+# titan_platform: thread pinning, Linux-only with no-op stubs elsewhere.
+add_library(titan_platform STATIC
+	src/platform/thread_affinity.cpp
+)
+
+target_include_directories(titan_platform
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(titan_platform
+	PUBLIC
+		Threads::Threads
+)
+
 # titan_pipeline: SPSC producer/consumer wrapper around InstrumentRegistry.
 add_library(titan_pipeline STATIC
 	src/pipeline/staged_processor.cpp
@@ -148,8 +181,10 @@ target_include_directories(titan_pipeline
 target_link_libraries(titan_pipeline
 	PUBLIC
 		titan_exchange
+		titan_platform
 		Threads::Threads
 )
+titan_apply_release_flags(titan_pipeline)
 
 add_subdirectory(tests)
 add_subdirectory(benchmarks)

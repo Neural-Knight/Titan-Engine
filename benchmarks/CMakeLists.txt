@@ -18,6 +18,7 @@ foreach(target ${TITAN_BENCH_TARGETS})
 		PRIVATE
 			TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 	)
+	titan_apply_release_flags(${target})
 endforeach()
 
 # Module 12: same steady_limit_flow/burst_crossing scenarios, OptimizedMatcher instead.
@@ -36,6 +37,7 @@ target_compile_definitions(bench_match_optimized
 	PRIVATE
 		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 )
+titan_apply_release_flags(bench_match_optimized)
 
 # Module 13: allocation counting via global operator new/delete overrides,
 # scoped to this one executable -- does not affect titan_tests.
@@ -51,6 +53,7 @@ target_compile_definitions(bench_allocations
 	PRIVATE
 		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 )
+titan_apply_release_flags(bench_allocations)
 
 # Module 14: single-threaded direct replay vs StagedProcessor's SPSC pipeline.
 add_executable(bench_pipeline bench_pipeline.cpp)
@@ -58,6 +61,7 @@ add_executable(bench_pipeline bench_pipeline.cpp)
 target_link_libraries(bench_pipeline
 	PRIVATE
 		titan_pipeline
+		titan_platform
 		titan_bench
 )
 
@@ -65,3 +69,4 @@ target_compile_definitions(bench_pipeline
 	PRIVATE
 		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 )
+titan_apply_release_flags(bench_pipeline)

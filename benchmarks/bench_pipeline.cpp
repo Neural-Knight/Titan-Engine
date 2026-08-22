@@ -1,6 +1,7 @@
 // Direct InstrumentRegistry replay vs the same ops via StagedProcessor.
 // Latency: per-op wall time (direct) or enqueue-to-applied time (pipeline).
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -10,6 +11,7 @@
 #include "titan/bench/scenario.hpp"
 #include "titan/exchange/instrument_registry.hpp"
 #include "titan/pipeline/staged_processor.hpp"
+#include "titan/platform/thread_affinity.hpp"
 
 using namespace titan;
 
@@ -73,6 +75,8 @@ RunSummary runPipeline(const std::vector<ScenarioOp>& ops, const Symbol& symbol)
 
     const uint64_t start = nowNanos();
     std::thread producer([&]() {
+        if (const char* cpuEnv = std::getenv("TITAN_PIN_PRODUCER_CPU"))
+            pinCurrentThreadToCpu(std::atoi(cpuEnv));  // no-op false off Linux, ignored if unset
         uint64_t sequence = 0;
         for (const auto& op : ops)
         {

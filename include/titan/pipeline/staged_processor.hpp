@@ -50,7 +50,6 @@ public:
 private:
     void enqueue(PipelineEvent event);
     void consumerLoop();
-    static void pinThread(std::thread& thread, int cpu);
 
     InstrumentRegistry registry_;
     PipelineQueue queue_;
