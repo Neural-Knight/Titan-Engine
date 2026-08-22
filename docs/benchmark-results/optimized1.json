@@ -1,0 +1,52 @@
+{
+  "description": "OptimizedMatcher vs ReferenceMatcher, same scenarios and build type as baseline.json (Module 8), for an apples-to-apples comparison.",
+  "date": "2026-08-22",
+  "environment_doc": "docs/benchmark-results/environment.md",
+  "baseline_reference": "docs/benchmark-results/baseline.json",
+  "comparison": {
+    "bench_match/steady_limit_flow": {
+      "reference": {
+        "google_benchmark_name": "BM_SteadyLimitFlow",
+        "repetitions": 5,
+        "mean_replay_time_ns": 39929486,
+        "cv_percent": 0.13,
+        "throughput_ops_per_sec": 501283
+      },
+      "optimized": {
+        "google_benchmark_name": "BM_SteadyLimitFlowOptimized",
+        "repetitions": 5,
+        "mean_replay_time_ns": 39223863,
+        "cv_percent": 0.61,
+        "throughput_ops_per_sec": 510380
+      },
+      "speedup_ratio": 1.018,
+      "latency_ns_full_replay": {
+        "reference": {"p50": 39924100, "p95": 40611500, "p99": 42419200, "p99_9": 42419200},
+        "optimized": {"p50": 39116800, "p95": 39583100, "p99": 39763800, "p99_9": 39763800}
+      }
+    },
+    "bench_match/burst_crossing": {
+      "reference": {
+        "google_benchmark_name": "BM_BurstCrossing",
+        "repetitions": 5,
+        "mean_replay_time_ns": 40571352,
+        "cv_percent": 0.85,
+        "throughput_ops_per_sec": 493450
+      },
+      "optimized": {
+        "google_benchmark_name": "BM_BurstCrossingOptimized",
+        "repetitions": 5,
+        "mean_replay_time_ns": 39739196,
+        "cv_percent": 0.77,
+        "throughput_ops_per_sec": 503780
+      },
+      "speedup_ratio": 1.021
+    }
+  },
+  "notes": [
+    "Both binaries built under the same no-CMAKE_BUILD_TYPE (debug-equivalent) config as baseline.json -- see environment.md's caveat that absolute numbers don't transfer to -O2/-O3.",
+    "Speedup is modest (~2%) on this debug build: OptimizedMatcher's win is fewer per-order heap allocations (vector append + tombstone vs. a std::list node per order), which a debug build's lack of inlining/allocator-fastpath optimization partly masks. cv_percent stayed under 1% across 5 repetitions on both sides, so the gap is real, not noise.",
+    "OptimizedMatcher trades memory for speed: canceled/filled orders are tombstoned (quantity=0) in place rather than erased, so a price level's backing vector never shrinks. Not exercised here since steady_limit_flow/burst_crossing are cancel-light; see the 2-line comment atop optimized_matcher.cpp.",
+    "10k-op ReferenceVsOptimized and FuzzMatcherParity tests (tests/parity/, tests/fuzz/) found zero trade/snapshot mismatches before these numbers were recorded."
+  ]
+}

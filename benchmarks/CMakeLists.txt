@@ -19,3 +19,20 @@ foreach(target ${TITAN_BENCH_TARGETS})
 			TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 	)
 endforeach()
+
+# Module 12: same steady_limit_flow/burst_crossing scenarios, OptimizedMatcher instead.
+add_executable(bench_match_optimized bench_match_optimized.cpp)
+
+target_link_libraries(bench_match_optimized
+	PRIVATE
+		titan_exchange
+		titan_book
+		titan_market_data
+		titan_bench
+		benchmark::benchmark
+)
+
+target_compile_definitions(bench_match_optimized
+	PRIVATE
+		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
+)

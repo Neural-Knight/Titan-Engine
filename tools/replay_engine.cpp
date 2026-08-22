@@ -11,16 +11,22 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << "usage: replay_engine <path-to-itch-file> [--checkpoint N]\n";
+        std::cerr << "usage: replay_engine <path-to-itch-file> [--checkpoint N] [--matcher reference|optimized]\n";
         return 1;
     }
 
     size_t checkpoint = 1;
+    MatcherBackend backend = MatcherBackend::Reference;
     for (int i = 2; i + 1 < argc; i += 2)
-        if (std::string(argv[i]) == "--checkpoint")
+    {
+        const std::string flag = argv[i];
+        if (flag == "--checkpoint")
             checkpoint = static_cast<size_t>(std::atoi(argv[i + 1]));
+        else if (flag == "--matcher" && std::string(argv[i + 1]) == "optimized")
+            backend = MatcherBackend::Optimized;
+    }
 
-    InstrumentRegistry registry;
+    InstrumentRegistry registry(backend);
     EventReplayer replayer(registry, checkpoint);
     const ReplayResult result = replayer.replayFile(argv[1]);
 

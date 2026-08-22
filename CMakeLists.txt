@@ -39,6 +39,19 @@ target_include_directories(titan_reference
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# titan_optimized: OptimizedMatcher, a drop-in IMatcher. No dependency on
+# titan_exchange -- instrument_registry.cpp (in titan_exchange) depends on
+# this, not the other way, so linking stays acyclic.
+add_library(titan_optimized STATIC
+	src/book/optimized_matcher.cpp
+)
+
+target_include_directories(titan_optimized
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 # titan_exchange: OrderManager + Validator, layered on top of IMatcher.
 add_library(titan_exchange STATIC
 	src/exchange/validator.cpp
@@ -49,6 +62,7 @@ add_library(titan_exchange STATIC
 target_link_libraries(titan_exchange
 	PUBLIC
 		titan_reference
+		titan_optimized
 )
 
 # titan_book: cross-cutting book invariants, checked against both layers.

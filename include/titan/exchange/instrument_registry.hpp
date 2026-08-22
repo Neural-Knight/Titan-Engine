@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "reference/order_book.hpp"
+#include "titan/book/i_matcher.hpp"
 #include "titan/core/events.hpp"
 #include "titan/core/types.hpp"
 #include "titan/exchange/order_manager.hpp"
@@ -13,10 +13,14 @@
 
 namespace titan {
 
-// One ReferenceMatcher + OrderManager per symbol; routes calls and logs events.
+enum class MatcherBackend { Reference, Optimized };
+
+// One IMatcher (Reference or Optimized) + OrderManager per symbol; routes calls and logs events.
 class InstrumentRegistry {
 public:
-    // No-op if the symbol already has an instrument.
+    explicit InstrumentRegistry(MatcherBackend backend = MatcherBackend::Reference);
+
+    // No-op if the symbol already has an instrument. Backed by the constructor's MatcherBackend.
     void createInstrument(const Symbol& symbol);
     bool hasInstrument(const Symbol& symbol) const;
 
@@ -40,7 +44,7 @@ public:
 
 private:
     struct Instrument {
-        std::unique_ptr<ReferenceMatcher> matcher;
+        std::unique_ptr<IMatcher> matcher;
         std::unique_ptr<OrderManager> manager;
         mutable uint64_t nextSnapshotSequenceNumber{0};
     };
@@ -48,7 +52,9 @@ private:
     Instrument* find(const Symbol& symbol);
     const Instrument* find(const Symbol& symbol) const;
     void emit(EventPayload payload);
+    std::unique_ptr<IMatcher> makeMatcher() const;
 
+    MatcherBackend backend_;
     std::unordered_map<Symbol, Instrument> instruments_;
     std::vector<Event> eventLog_;
     uint64_t nextSequenceNumber_{0};

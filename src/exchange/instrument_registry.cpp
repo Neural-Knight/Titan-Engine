@@ -2,7 +2,19 @@
 
 #include <utility>
 
+#include "reference/order_book.hpp"
+#include "titan/book/optimized_matcher.hpp"
+
 namespace titan {
+
+InstrumentRegistry::InstrumentRegistry(MatcherBackend backend) : backend_(backend) {}
+
+std::unique_ptr<IMatcher> InstrumentRegistry::makeMatcher() const
+{
+    if (backend_ == MatcherBackend::Optimized)
+        return std::make_unique<OptimizedMatcher>();
+    return std::make_unique<ReferenceMatcher>();
+}
 
 void InstrumentRegistry::createInstrument(const Symbol& symbol)
 {
@@ -10,7 +22,7 @@ void InstrumentRegistry::createInstrument(const Symbol& symbol)
         return;
 
     Instrument instrument;
-    instrument.matcher = std::make_unique<ReferenceMatcher>();
+    instrument.matcher = makeMatcher();
     instrument.manager = std::make_unique<OrderManager>(*instrument.matcher);
     instruments_.emplace(symbol, std::move(instrument));
 }

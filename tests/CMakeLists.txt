@@ -18,6 +18,8 @@ add_executable(titan_tests
 	integration/test_itch_checkpoints.cpp
 	integration/test_itch_adapter.cpp
 	integration/test_itch_engine_parity.cpp
+	integration/test_itch_engine_parity_optimized.cpp
+	parity/test_reference_vs_optimized.cpp
 	fuzz/fuzz_order_book.cpp
 )
 

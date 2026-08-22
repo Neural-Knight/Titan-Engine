@@ -134,9 +134,10 @@ ITCH ref resolve to the same underlying engine order.
 `InstrumentRegistry` (a new `InstrumentRegistry::reset()`, purely additive),
 mirroring `ItchBookBuilder::reset()`.
 
-Run: `build/tools/replay_engine <path> [--checkpoint N]` -- prints
-decoded/skipped counts, parity summary, first mismatches, and feed vs. engine
-trade volume; exits 1 if any mismatch was found.
+Run: `build/tools/replay_engine <path> [--checkpoint N] [--matcher reference|optimized]`
+-- prints decoded/skipped counts, parity summary, first mismatches, and feed
+vs. engine trade volume; exits 1 if any mismatch was found. ITCH parity is
+verified against both `InstrumentRegistry` matcher backends (Module 12).
 
 ### Known limitations
 
