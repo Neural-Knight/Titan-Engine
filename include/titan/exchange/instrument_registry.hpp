@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -28,8 +29,14 @@ public:
     // Empty bids/asks and sequenceNumber 0 if `symbol` has no instrument.
     BookSnapshot snapshot(const Symbol& symbol, size_t depth) const;
 
+    // nullopt if `symbol` has no instrument or `id` is unknown to it.
+    std::optional<Order> findOrder(const Symbol& symbol, OrderId id) const;
+
     const std::vector<Event>& eventLog() const { return eventLog_; }
     void clearEventLog() { eventLog_.clear(); }
+
+    // Drops every instrument and the event log. For feed session-end (ITCH 'S'/'C').
+    void reset();
 
 private:
     struct Instrument {

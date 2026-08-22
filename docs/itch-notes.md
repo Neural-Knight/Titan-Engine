@@ -105,3 +105,46 @@ elsewhere in this module.
 Deferred to Module 11: feeding `ItchBookBuilder` state into
 `InstrumentRegistry` so a real feed can drive the exchange-side book.
 
+## Module 11: Engine Replay
+
+`titan_replay` (`ItchEngineAdapter`, `ParityChecker`, `EventReplayer`) drives
+`InstrumentRegistry` from the same decoded messages `ItchBookBuilder` sees, so
+the exchange-side book can be checked against the feed-side one.
+
+- `R`/`A`/`F`/`D` map onto `createInstrument`/`submitOrder`/`cancelOrder`
+directly, using `orderReferenceNumber` as the `OrderId`.
+- `X` (partial cancel) maps to `cancelReplace` at the same price with the
+reduced quantity (or `cancelOrder` if it empties the order) -- ITCH cancels
+don't lose queue priority, which matches `cancelReplace`'s same-price,
+qty-decrease fast path.
+- `E`/`C` have no passive-execution API on `OrderManager`, so the adapter
+injects a synthetic IOC limit on the opposite side, sized to the executed
+shares, at the execution price (`C`) or the resting order's own price (`E`).
+Synthetic incoming ids start at 1,000,000,000 to stay clear of ITCH
+reference numbers. This assumes the targeted resting order is FIFO-front at
+that price -- true for the single-order-per-level sessions this module's
+tests use, but not guaranteed in general (see limitations below).
+- `U` (Replace) is the one ITCH message `OrderManager::cancelReplace` can't
+model directly: ITCH assigns a *new* reference number, but
+`cancelReplace` only allows a same-id amend. The adapter keeps the
+replaced order under its original engine `OrderId` and maintains its own
+`orderReferenceNumber -> OrderId` map, so later messages against the new
+ITCH ref resolve to the same underlying engine order.
+- `S` with `eventCode == 'C'` resets both the adapter's own maps and the
+`InstrumentRegistry` (a new `InstrumentRegistry::reset()`, purely additive),
+mirroring `ItchBookBuilder::reset()`.
+
+Run: `build/tools/replay_engine <path> [--checkpoint N]` -- prints
+decoded/skipped counts, parity summary, first mismatches, and feed vs. engine
+trade volume; exits 1 if any mismatch was found.
+
+### Known limitations
+
+- Only the ITCH types this module's parser implements are handled; anything
+else was already dropped at the decode stage.
+- Parity compares aggregated top-of-book level quantity, not per-order FIFO
+identity within a level -- if two resting orders share a price and an `E`
+targets the one behind the front, the synthetic-order approach above would
+hit the front order instead. Not exercised by this module's hand-crafted
+sessions.
+

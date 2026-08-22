@@ -11,3 +11,10 @@ target_link_libraries(itch_replay
 	PRIVATE
 		titan_itch
 )
+
+add_executable(replay_engine replay_engine.cpp)
+
+target_link_libraries(replay_engine
+	PRIVATE
+		titan_replay
+)

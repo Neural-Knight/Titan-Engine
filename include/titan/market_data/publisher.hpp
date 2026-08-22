@@ -9,8 +9,7 @@
 namespace titan {
 
 // Derives ExecutionReports purely from InstrumentRegistry::eventLog() --
-// never calls back into OrderManager, so a crossing submitOrder's missing
-// TradeExecuted (see InstrumentRegistry::submitOrder) stays missing here too.
+// inherits submitOrder's missing TradeExecuted on crossing GTC (see registry).
 class EventPublisher {
 public:
     void process(const Event& event);

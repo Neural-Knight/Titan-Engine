@@ -98,6 +98,26 @@ target_include_directories(titan_itch
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# titan_replay: replays decoded ITCH messages into InstrumentRegistry, with
+# parity checking against ItchBookBuilder.
+add_library(titan_replay STATIC
+	src/replay/itch_adapter.cpp
+	src/replay/parity_checker.cpp
+	src/replay/event_replayer.cpp
+)
+
+target_include_directories(titan_replay
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(titan_replay
+	PUBLIC
+		titan_itch
+		titan_exchange
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 add_subdirectory(tools)

@@ -46,6 +46,21 @@ BookSnapshot InstrumentRegistry::snapshot(const Symbol& symbol, size_t depth) co
     };
 }
 
+std::optional<Order> InstrumentRegistry::findOrder(const Symbol& symbol, OrderId id) const
+{
+    const Instrument* instrument = find(symbol);
+    if (!instrument)
+        return std::nullopt;
+    return instrument->manager->find(id);
+}
+
+void InstrumentRegistry::reset()
+{
+    instruments_.clear();
+    eventLog_.clear();
+    nextSequenceNumber_ = 0;
+}
+
 void InstrumentRegistry::emit(EventPayload payload)
 {
     eventLog_.push_back(Event{nextSequenceNumber_++, std::move(payload)});

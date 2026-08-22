@@ -16,6 +16,8 @@ add_executable(titan_tests
 	integration/test_event_dispatch.cpp
 	integration/test_itch_book_builder.cpp
 	integration/test_itch_checkpoints.cpp
+	integration/test_itch_adapter.cpp
+	integration/test_itch_engine_parity.cpp
 	fuzz/fuzz_order_book.cpp
 )
 
@@ -36,6 +38,7 @@ target_link_libraries(titan_tests
 		titan_market_data
 		titan_bench
 		titan_itch
+		titan_replay
 		GTest::gtest_main
 )
 
