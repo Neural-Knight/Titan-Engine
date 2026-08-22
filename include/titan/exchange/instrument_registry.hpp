@@ -8,6 +8,7 @@
 #include "titan/core/events.hpp"
 #include "titan/core/types.hpp"
 #include "titan/exchange/order_manager.hpp"
+#include "titan/market_data/book_snapshot.hpp"
 
 namespace titan {
 
@@ -24,6 +25,9 @@ public:
     std::vector<Trade> matchOrder(const Symbol& symbol, Order order);
     AcceptResult cancelReplace(const Symbol& symbol, OrderId oldId, Order newOrder);
 
+    // Empty bids/asks and sequenceNumber 0 if `symbol` has no instrument.
+    BookSnapshot snapshot(const Symbol& symbol, size_t depth) const;
+
     const std::vector<Event>& eventLog() const { return eventLog_; }
     void clearEventLog() { eventLog_.clear(); }
 
@@ -31,9 +35,11 @@ private:
     struct Instrument {
         std::unique_ptr<ReferenceMatcher> matcher;
         std::unique_ptr<OrderManager> manager;
+        mutable uint64_t nextSnapshotSequenceNumber{0};
     };
 
     Instrument* find(const Symbol& symbol);
+    const Instrument* find(const Symbol& symbol) const;
     void emit(EventPayload payload);
 
     std::unordered_map<Symbol, Instrument> instruments_;

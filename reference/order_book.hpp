@@ -17,6 +17,9 @@ public:
     Price bestBid() const override;
     Price bestAsk() const override;
 
+    std::vector<PriceLevel> bidDepth(size_t maxLevels) const override;
+    std::vector<PriceLevel> askDepth(size_t maxLevels) const override;
+
     // Test/tool introspection only, not part of IMatcher.
     const PriceLevels& getBids() const;
     const PriceLevels& getAsks() const;

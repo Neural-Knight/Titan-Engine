@@ -26,6 +26,26 @@ InstrumentRegistry::Instrument* InstrumentRegistry::find(const Symbol& symbol)
     return (it == instruments_.end()) ? nullptr : &it->second;
 }
 
+const InstrumentRegistry::Instrument* InstrumentRegistry::find(const Symbol& symbol) const
+{
+    auto it = instruments_.find(symbol);
+    return (it == instruments_.end()) ? nullptr : &it->second;
+}
+
+BookSnapshot InstrumentRegistry::snapshot(const Symbol& symbol, size_t depth) const
+{
+    const Instrument* instrument = find(symbol);
+    if (!instrument)
+        return BookSnapshot{symbol, 0, {}, {}};
+
+    return BookSnapshot{
+        symbol,
+        instrument->nextSnapshotSequenceNumber++,
+        instrument->matcher->bidDepth(depth),
+        instrument->matcher->askDepth(depth),
+    };
+}
+
 void InstrumentRegistry::emit(EventPayload payload)
 {
     eventLog_.push_back(Event{nextSequenceNumber_++, std::move(payload)});

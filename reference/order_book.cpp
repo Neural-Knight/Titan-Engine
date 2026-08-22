@@ -133,6 +133,45 @@ Price ReferenceMatcher::bestAsk() const
     return 0;
 }
 
+namespace {
+
+std::vector<PriceLevel> depthFrom(const PriceLevels& levels, bool reverse, size_t maxLevels)
+{
+    std::vector<PriceLevel> result;
+    auto append = [&](Price price, const OrderList& orders) {
+        if (result.size() >= maxLevels)
+            return;
+        Quantity total = 0;
+        for (const auto& order : orders)
+            total += order.quantity;
+        result.push_back(PriceLevel{price, total});
+    };
+
+    if (reverse)
+    {
+        for (auto it = levels.rbegin(); it != levels.rend() && result.size() < maxLevels; ++it)
+            append(it->first, it->second);
+    }
+    else
+    {
+        for (auto it = levels.begin(); it != levels.end() && result.size() < maxLevels; ++it)
+            append(it->first, it->second);
+    }
+    return result;
+}
+
+}  // namespace
+
+std::vector<PriceLevel> ReferenceMatcher::bidDepth(size_t maxLevels) const
+{
+    return depthFrom(bids, /*reverse=*/true, maxLevels);
+}
+
+std::vector<PriceLevel> ReferenceMatcher::askDepth(size_t maxLevels) const
+{
+    return depthFrom(asks, /*reverse=*/false, maxLevels);
+}
+
 std::vector<Trade> ReferenceMatcher::matchOrder(Order incomingOrder)
 {
     std::vector<Trade> trades = cross(incomingOrder);

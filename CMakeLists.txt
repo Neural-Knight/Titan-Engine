@@ -52,5 +52,16 @@ target_link_libraries(titan_book
 		titan_exchange
 )
 
+# titan_market_data: derives ExecutionReports from InstrumentRegistry's event log.
+add_library(titan_market_data STATIC
+	src/market_data/publisher.cpp
+)
+
+target_include_directories(titan_market_data
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)

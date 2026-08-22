@@ -8,6 +8,8 @@ add_executable(titan_tests
 	unit/test_stp.cpp
 	unit/test_order_entry_routing.cpp
 	unit/test_multi_symbol.cpp
+	unit/test_execution_reports.cpp
+	unit/test_book_snapshots.cpp
 	integration/test_event_dispatch.cpp
 	fuzz/fuzz_order_book.cpp
 )
@@ -20,6 +22,7 @@ target_include_directories(titan_tests
 target_link_libraries(titan_tests
 	PRIVATE
 		titan_book
+		titan_market_data
 		GTest::gtest_main
 )
 
