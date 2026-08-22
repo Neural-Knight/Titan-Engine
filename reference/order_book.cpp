@@ -1,7 +1,11 @@
-#include "order.h"
-#include <limits>
+#include "reference/order_book.hpp"
+
 #include <algorithm>
-void OrderBook::addOrder(const Order &order)
+#include <limits>
+
+namespace titan {
+
+void ReferenceMatcher::addOrder(const Order& order)
 {
     OrderLocation location{
         .side = order.side,
@@ -25,7 +29,8 @@ void OrderBook::addOrder(const Order &order)
     }
     orderTable[order.id] = location;
 }
-void OrderBook::removeOrder(OrderId id)
+
+void ReferenceMatcher::removeOrder(OrderId id)
 {
     auto it = orderTable.find(id);
     if (it == orderTable.end())
@@ -54,41 +59,41 @@ void OrderBook::removeOrder(OrderId id)
     orderTable.erase(id);
 }
 
-void OrderBook::cancelOrder(OrderId id)
+void ReferenceMatcher::cancelOrder(OrderId id)
 {
     removeOrder(id);
 }
 
-const PriceLevels &OrderBook::getBids() const
+const PriceLevels& ReferenceMatcher::getBids() const
 {
     return bids;
 }
 
-const PriceLevels &OrderBook::getAsks() const
+const PriceLevels& ReferenceMatcher::getAsks() const
 {
     return asks;
 }
 
-const std::map<OrderId, OrderLocation> &OrderBook::getOrderTable() const
+const std::unordered_map<OrderId, OrderLocation>& ReferenceMatcher::getOrderTable() const
 {
     return orderTable;
 }
 
-Price OrderBook::bestBid() const
+Price ReferenceMatcher::bestBid() const
 {
     if (!bids.empty())
         return std::prev(bids.end())->first;
     return std::numeric_limits<Price>::max();
 }
 
-Price OrderBook::bestAsk() const
+Price ReferenceMatcher::bestAsk() const
 {
     if (!asks.empty())
         return asks.begin()->first;
     return 0;
 }
 
-std::vector<Trade> OrderBook::matchOrder(Order incomingOrder)
+std::vector<Trade> ReferenceMatcher::matchOrder(Order incomingOrder)
 {
     std::vector<Trade> trades;
     if (incomingOrder.side == Side::Buy)
@@ -123,3 +128,5 @@ std::vector<Trade> OrderBook::matchOrder(Order incomingOrder)
     }
     return trades;
 }
+
+}  // namespace titan

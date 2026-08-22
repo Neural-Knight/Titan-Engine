@@ -19,20 +19,17 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-add_executable(order_tests
-	src/order.cpp
-	tests/test_order.cpp
+# titan_reference: the correctness-oracle matching engine (ReferenceMatcher),
+# implementing IMatcher. Do not optimize this target — see reference/order_book.hpp.
+add_library(titan_reference STATIC
+	reference/order_book.cpp
 )
 
-target_include_directories(order_tests
-	PRIVATE
+target_include_directories(titan_reference
+	PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(order_tests
-	PRIVATE
-		GTest::gtest_main
-)
-
-include(GoogleTest)
-gtest_discover_tests(order_tests)
+add_subdirectory(tests)
+add_subdirectory(benchmarks)

@@ -5,7 +5,9 @@ cmake-build-*/
 # CMake generated files
 CMakeCache.txt
 CMakeFiles/
-Makefile
+# Only ignore CMake-generated Makefiles inside build dirs, not our root Makefile.
+build/Makefile
+cmake-build-*/Makefile
 cmake_install.cmake
 compile_commands.json
 CTestTestfile.cmake
