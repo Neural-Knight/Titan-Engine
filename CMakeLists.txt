@@ -151,6 +151,25 @@ target_link_libraries(titan_replay
 
 find_package(Threads REQUIRED)
 
+# titan_feed_tcp: POSIX TCP client feed reader + ITCH socket pipeline glue.
+add_library(titan_feed_tcp STATIC
+	src/feed/tcp/socket_feed.cpp
+	src/feed/tcp/itch_socket_pipeline.cpp
+)
+
+target_include_directories(titan_feed_tcp
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(titan_feed_tcp
+	PUBLIC
+		titan_replay
+		Threads::Threads
+)
+titan_apply_release_flags(titan_feed_tcp)
+
 # titan_platform: thread pinning, Linux-only with no-op stubs elsewhere.
 add_library(titan_platform STATIC
 	src/platform/thread_affinity.cpp

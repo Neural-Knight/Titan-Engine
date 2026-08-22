@@ -18,3 +18,10 @@ target_link_libraries(replay_engine
 	PRIVATE
 		titan_replay
 )
+
+add_executable(itch_listen itch_listen.cpp)
+
+target_link_libraries(itch_listen
+	PRIVATE
+		titan_feed_tcp
+)

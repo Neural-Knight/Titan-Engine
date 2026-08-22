@@ -1,8 +1,8 @@
 # ITCH 5.0 parser
 
-Ingestion only: framing + byte-level decode into typed structs. No book
-reconstruction (Module 10), no `InstrumentRegistry` wiring (Module 11), no
-sockets.
+Ingestion only: framing + byte-level decode into typed structs. Book
+reconstruction is Module 10, `InstrumentRegistry` wiring is Module 11,
+TCP socket ingestion is Module 16 (below).
 
 ## Message types implemented
 
@@ -148,4 +148,33 @@ identity within a level -- if two resting orders share a price and an `E`
 targets the one behind the front, the synthetic-order approach above would
 hit the front order instead. Not exercised by this module's hand-crafted
 sessions.
+
+## TCP feed
+
+`titan/feed/tcp/socket_feed.hpp` (`SocketFeedReader`) connects out as a TCP
+*client* to `host:port` and runs recv + `ItchParser::feed()` + a message
+callback on one dedicated thread -- parsing stays single-threaded since
+`ItchParser` isn't thread-safe, so there's no second internal queue hop for
+the byte-to-message step. `titan/feed/tcp/itch_socket_pipeline.hpp`
+(`ItchSocketPipeline`) wires that callback into the same
+`ItchBookBuilder` + `ItchEngineAdapter` + `ParityChecker` combination
+`EventReplayer` uses for files, just kept alive across the whole TCP
+session instead of one-shot per call. Neither `ItchParser` nor
+`ItchEngineAdapter` was changed -- this module only adds a byte source.
+
+Run: `build/tools/itch_listen --host H --port P [--matcher reference|optimized] [--checkpoint N]`
+-- connects as a client, prints the same decoded/skipped/parity/trade-volume
+summary shape as `replay_engine`. This is a client for a real NASDAQ-style
+feed (the exchange is the server); for local testing, run any TCP server
+that writes ITCH-framed bytes first (see
+`tests/integration/test_socket_feed.cpp`'s `LoopbackServer` for a minimal one).
+
+Sockets use plain POSIX (`socket`/`connect`/`poll`/`recv`/`shutdown`) --
+identical on macOS and Linux, no `#ifdef` needed for the default path.
+`stop()` unblocks a pending `recv`/`poll` via `shutdown(fd, SHUT_RDWR)` from
+another thread, with a 200ms `poll()` timeout as a backstop either way.
+Linux-only fast paths (`epoll`, `SO_BUSY_POLL`) were considered and
+deliberately not implemented -- `poll()` is enough for this module's scope
+and keeps macOS and Linux on one code path. Not a production NASDAQ
+connectivity claim -- local/mock servers only, proven via loopback tests.
 
