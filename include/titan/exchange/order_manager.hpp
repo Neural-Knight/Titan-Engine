@@ -107,6 +107,16 @@ public:
     // nullopt if `id` has never been accepted by this manager.
     std::optional<Order> find(OrderId id) const;
 
+    // --- Invariant/test-only introspection -----------------------------
+    // Read-only, direct references into private bookkeeping. Not part of
+    // the exchange-facing API — exists purely so invariants.cpp and the
+    // fuzz tests (Module 5) can verify this manager's internal state
+    // against the real matcher without duplicating it or reaching into
+    // private members.
+    const std::unordered_set<OrderId>& activeOrderIdsForInvariants() const { return activeOrderIds_; }
+    const std::map<Price, std::vector<OrderId>>& restingBidsForInvariants() const { return restingBidsAt_; }
+    const std::map<Price, std::vector<OrderId>>& restingAsksForInvariants() const { return restingAsksAt_; }
+
 private:
     IMatcher& matcher_;
 
