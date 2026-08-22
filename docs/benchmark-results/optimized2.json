@@ -1,0 +1,37 @@
+{
+  "description": "OptimizedMatcher with pooled Order storage vs ReferenceMatcher -- allocation count and latency, same scenario/build type as baseline.json and optimized1.json (Module 12).",
+  "date": "2026-08-23",
+  "environment_doc": "docs/benchmark-results/environment.md",
+  "baseline_reference": "docs/benchmark-results/baseline.json",
+  "module_12_reference": "docs/benchmark-results/optimized1.json",
+  "method": "benchmarks/bench_allocations.cpp: one persistent matcher+OrderManager replays steady_limit_flow across 5 warmup passes (unmeasured, lets the pool's slabs finish growing) then 10 measured passes (200,000 ops), with each pass's order ids offset so a persistent OrderManager doesn't reject repeats as duplicates. Global operator new/delete overridden in that one executable only.",
+  "allocations": {
+    "scenario": "steady_limit_flow",
+    "measured_ops": 200000,
+    "reference": {
+      "allocations": 1337882,
+      "deallocations": 817516,
+      "allocs_per_1M_ops": 6689410
+    },
+    "optimized": {
+      "allocations": 1265432,
+      "deallocations": 785168,
+      "allocs_per_1M_ops": 6327160
+    },
+    "allocation_reduction_percent": 5.4
+  },
+  "latency_ns_full_replay": {
+    "reference": {"p50": 41537900, "p99": 45050700},
+    "optimized": {"p50": 41255300, "p99": 42011400}
+  },
+  "latency_delta_vs_module_12": {
+    "note": "optimized1.json measured p50/p99 on a fresh-matcher-per-iteration harness (bench_match_optimized); this file's harness is a persistent-matcher replay instead, so absolute numbers aren't directly comparable -- only the reference-vs-optimized gap within each file is.",
+    "p50_speedup_percent": 0.68,
+    "p99_speedup_percent": 6.72
+  },
+  "notes": [
+    "Pooling covers Order object storage only (FixedObjectPool<Order>, include/titan/core/memory_pool.hpp) -- Level::orders (vector<Order*>), the map<Price,Level> node, and the unordered_map<OrderId,OrderRef> node all still allocate at the same rate as ReferenceMatcher. See docs/benchmark-results/allocations.md for the full breakdown of why this isn't closer to zero.",
+    "5.4% fewer allocations is modest, not the 'near-zero' language in the module task -- reported as measured, not assumed.",
+    "10k-op ReferenceVsOptimized, FuzzMatcherParity, and ItchEngineParityOptimized tests found zero mismatches before these numbers were recorded (151/151 tests passing)."
+  ]
+}
