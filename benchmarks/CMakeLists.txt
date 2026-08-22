@@ -36,3 +36,18 @@ target_compile_definitions(bench_match_optimized
 	PRIVATE
 		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 )
+
+# Module 13: allocation counting via global operator new/delete overrides,
+# scoped to this one executable -- does not affect titan_tests.
+add_executable(bench_allocations bench_allocations.cpp)
+
+target_link_libraries(bench_allocations
+	PRIVATE
+		titan_exchange
+		titan_bench
+)
+
+target_compile_definitions(bench_allocations
+	PRIVATE
+		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
+)

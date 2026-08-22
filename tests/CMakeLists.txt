@@ -12,6 +12,7 @@ add_executable(titan_tests
 	unit/test_book_snapshots.cpp
 	unit/test_latency_histogram.cpp
 	unit/test_scenario_loader.cpp
+	unit/test_memory_pool.cpp
 	unit/test_itch_parser.cpp
 	integration/test_event_dispatch.cpp
 	integration/test_itch_book_builder.cpp

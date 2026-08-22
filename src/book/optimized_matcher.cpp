@@ -1,9 +1,11 @@
 // Design: same std::map<Price, Level> as ReferenceMatcher (so best-of-book
-// and iteration order are identical), but each Level is a flat vector with
-// lazy tombstoning on cancel/fill instead of a linked list. This avoids a
-// heap node per order and keeps a level's live orders contiguous, at the
-// cost of unbounded per-level memory growth (no compaction) -- fine for
-// bounded benchmark/test runs, not attempted here (Module 13's concern).
+// and iteration order are identical). Each Level is a flat vector<Order*>
+// with lazy nullptr tombstoning on cancel/fill instead of a linked list;
+// Order objects themselves come from a pool (see memory_pool.hpp) so a
+// filled/canceled order's slot is reused by any future order, not just ones
+// at the same price -- unlike Module 12, per-level memory no longer grows
+// unboundedly. The vector<Order*> and the map/hashmap index nodes still
+// allocate on level open/close and per-order-id churn -- not pooled here.
 #include "titan/book/optimized_matcher.hpp"
 
 #include <algorithm>
@@ -15,8 +17,12 @@ void OptimizedMatcher::restOrder(const Order& order)
 {
     Levels& levels = (order.side == Side::Buy) ? bids_ : asks_;
     Level& level = levels[order.price];
+    if (level.orders.empty())
+        level.orders.reserve(8);  // a fresh level (empty ⟺ never populated); cuts early regrowth churn
     const size_t index = level.orders.size();
-    level.orders.push_back(order);
+    Order* slot = orderPool_.acquire();
+    *slot = order;
+    level.orders.push_back(slot);
     ++level.liveCount;
     orderTable_[order.id] = OrderRef{order.side, order.price, index};
 }
@@ -32,7 +38,8 @@ void OptimizedMatcher::removeOrder(OrderId id)
     const auto levelIt = levels.find(ref.price);
 
     Level& level = levelIt->second;
-    level.orders[ref.index].quantity = 0;
+    orderPool_.release(level.orders[ref.index]);
+    level.orders[ref.index] = nullptr;
     --level.liveCount;
     orderTable_.erase(it);
 
@@ -43,9 +50,9 @@ void OptimizedMatcher::removeOrder(OrderId id)
 // Skips tombstones, advancing frontIndex; nullptr if the level has no live orders left.
 Order* OptimizedMatcher::frontLive(Level& level)
 {
-    while (level.frontIndex < level.orders.size() && level.orders[level.frontIndex].quantity == 0)
+    while (level.frontIndex < level.orders.size() && level.orders[level.frontIndex] == nullptr)
         ++level.frontIndex;
-    return (level.frontIndex < level.orders.size()) ? &level.orders[level.frontIndex] : nullptr;
+    return (level.frontIndex < level.orders.size()) ? level.orders[level.frontIndex] : nullptr;
 }
 
 std::vector<Trade> OptimizedMatcher::cross(Order& incoming)
@@ -113,8 +120,9 @@ std::vector<PriceLevel> OptimizedMatcher::depthFrom(const Levels& levels, bool r
         if (result.size() >= maxLevels)
             return;
         Quantity total = 0;
-        for (const Order& order : level.orders)
-            total += order.quantity;  // tombstones are quantity==0, contribute nothing
+        for (const Order* order : level.orders)
+            if (order)
+                total += order->quantity;  // nullptr tombstones contribute nothing
         result.push_back(PriceLevel{price, total});
     };
 

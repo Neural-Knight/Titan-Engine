@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "titan/book/i_matcher.hpp"
+#include "titan/core/memory_pool.hpp"
 
 namespace titan {
 
@@ -24,10 +25,10 @@ public:
     std::vector<PriceLevel> askDepth(size_t maxLevels) const override;
 
 private:
-    // Append-only; canceled/filled orders become quantity==0 tombstones
-    // instead of being erased, so indices into `orders` never move.
+    // Append-only; canceled/filled orders release their pool slot and become
+    // nullptr tombstones, so indices into `orders` never move.
     struct Level {
-        std::vector<Order> orders;
+        std::vector<Order*> orders;
         size_t frontIndex{0};
         size_t liveCount{0};
     };
@@ -47,6 +48,7 @@ private:
     Levels bids_;
     Levels asks_;
     std::unordered_map<OrderId, OrderRef> orderTable_;
+    FixedObjectPool<Order> orderPool_;
 };
 
 }  // namespace titan
