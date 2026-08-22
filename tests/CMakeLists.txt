@@ -4,6 +4,8 @@ add_executable(titan_tests
 	unit/test_order_lifecycle.cpp
 	unit/test_market_orders.cpp
 	unit/test_ioc_orders.cpp
+	unit/test_cancel_replace.cpp
+	unit/test_stp.cpp
 )
 
 target_link_libraries(titan_tests

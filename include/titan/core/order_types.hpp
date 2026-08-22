@@ -33,7 +33,11 @@ enum class RejectReason {
     ZeroQuantity,
     ZeroPrice,
     DuplicateOrderId,
-    UnknownOrder
+    UnknownOrder,
+    //cancel/replace + order-entry hardening.
+    OrderNotResting,  // cancelReplace target is filled/cancelled/unknown
+    InvalidReplace,   // replacement's id doesn't match, or type can't rest
+    InvalidOrderType  // Market/IOC submitted via addOrder() (must use matchOrder)
 };
 
 }  // namespace titan
