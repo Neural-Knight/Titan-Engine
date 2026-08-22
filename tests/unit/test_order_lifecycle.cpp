@@ -56,7 +56,7 @@ TEST(OrderLifecycle, FullMatchTransitionsBothOrdersToFilled) {
 
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 50, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100}).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::Filled);
@@ -70,13 +70,13 @@ TEST(OrderLifecycle, PartialFillThenFullFillReachesFilled) {
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 50, 100}).accepted);
 
 	// First incoming BUY only takes 40 of the resting 100.
-	const auto firstTrades = manager.matchOrder(Order{2, Side::Buy, 50, 40});
+	const auto firstTrades = manager.matchOrder(Order{2, Side::Buy, 50, 40}).trades;
 	ASSERT_EQ(firstTrades.size(), 1u);
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::PartiallyFilled);
 	EXPECT_EQ(manager.statusOf(2), OrderStatus::Filled);
 
 	// Second incoming BUY takes the remaining 60.
-	const auto secondTrades = manager.matchOrder(Order{3, Side::Buy, 50, 60});
+	const auto secondTrades = manager.matchOrder(Order{3, Side::Buy, 50, 60}).trades;
 	ASSERT_EQ(secondTrades.size(), 1u);
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::Filled);
 	EXPECT_EQ(manager.statusOf(3), OrderStatus::Filled);

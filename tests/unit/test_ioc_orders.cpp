@@ -11,7 +11,7 @@ TEST(IocOrders, PartialFillCancelsRemainder) {
 
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 50, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 150, 0, OrderType::Limit, TimeInForce::IOC});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 150, 0, OrderType::Limit, TimeInForce::IOC}).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(trades[0].quantity, 100u);
@@ -26,7 +26,7 @@ TEST(IocOrders, FullFillStatusFilled) {
 
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 50, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC}).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(manager.statusOf(2), OrderStatus::Filled);
@@ -38,7 +38,7 @@ TEST(IocOrders, EmptyBookCancelled) {
 	ReferenceMatcher matcher;
 	OrderManager manager(matcher);
 
-	const auto trades = manager.matchOrder(Order{1, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC});
+	const auto trades = manager.matchOrder(Order{1, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::Cancelled);
@@ -53,7 +53,7 @@ TEST(IocOrders, NoCrossingLiquidityCancelled) {
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 51, 100}).accepted);
 
 	// IOC buy at 50 can't cross the resting ask at 51: no trade, cancelled.
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100, 0, OrderType::Limit, TimeInForce::IOC}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(2), OrderStatus::Cancelled);
@@ -70,7 +70,7 @@ TEST(IocOrders, GtcLimitStillRestsOnNoCross) {
 
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 51, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 50, 100}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(2), OrderStatus::New);

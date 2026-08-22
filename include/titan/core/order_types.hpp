@@ -37,7 +37,8 @@ enum class RejectReason {
     OrderNotResting,  // cancelReplace target is filled/cancelled/unknown
     InvalidReplace,   // replacement's id doesn't match, or type can't rest
     InvalidOrderType, // Market/IOC submitted via addOrder() (must use matchOrder)
-    ReplaceWouldCross // cancelReplace's new price would cross the opposite book
+    ReplaceWouldCross, // cancelReplace's new price would cross the opposite book
+    UnknownSymbol     // InstrumentRegistry call for a symbol with no instrument
 };
 
 }  // namespace titan

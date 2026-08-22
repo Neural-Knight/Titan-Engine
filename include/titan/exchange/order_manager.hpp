@@ -18,6 +18,11 @@ struct AcceptResult {
     RejectReason reason;
 };
 
+struct MatchResult {
+    std::vector<Trade> trades;
+    AcceptResult accept;
+};
+
 // Exchange entry point: validation, lifecycle, STP on top of IMatcher.
 class OrderManager {
 public:
@@ -34,7 +39,7 @@ public:
     AcceptResult cancelReplace(OrderId oldId, Order newOrder);
 
     // Matches order against the book; GTC rests any non-crossing remainder.
-    std::vector<Trade> matchOrder(Order order);
+    MatchResult matchOrder(Order order);
 
     // nullopt if `id` was never accepted by this manager.
     std::optional<OrderStatus> statusOf(OrderId id) const;

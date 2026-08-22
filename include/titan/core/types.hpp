@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <list>
 #include <map>
+#include <string>
 #include <unordered_map>
 
 #include "titan/core/order_types.hpp"
@@ -17,6 +18,9 @@ enum class Side {
 using OrderId = uint64_t;
 using Price = uint64_t;
 using Quantity = uint64_t;
+
+// Plain alias, not a wrapper: symbols are opaque strings to every layer here.
+using Symbol = std::string;
 
 // accountId/type/tif/status are defaulted so existing 4-field aggregate
 // inits (`Order{1, Side::Buy, 100, 10}`) keep compiling unchanged.

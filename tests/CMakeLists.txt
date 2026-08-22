@@ -7,6 +7,8 @@ add_executable(titan_tests
 	unit/test_cancel_replace.cpp
 	unit/test_stp.cpp
 	unit/test_order_entry_routing.cpp
+	unit/test_multi_symbol.cpp
+	integration/test_event_dispatch.cpp
 	fuzz/fuzz_order_book.cpp
 )
 

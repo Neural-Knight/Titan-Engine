@@ -34,6 +34,7 @@ target_include_directories(titan_reference
 add_library(titan_exchange STATIC
 	src/exchange/validator.cpp
 	src/exchange/order_manager.cpp
+	src/exchange/instrument_registry.cpp
 )
 
 target_link_libraries(titan_exchange

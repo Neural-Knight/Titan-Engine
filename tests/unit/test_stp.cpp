@@ -18,7 +18,7 @@ TEST(Stp, SameAccountCrossIsBlocked) {
 	Order incoming{2, Side::Buy, 50, 100};
 	incoming.accountId = 7;
 
-	const auto trades = manager.matchOrder(incoming);
+	const auto trades = manager.matchOrder(incoming).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(matcher.getAsks().at(50).front().quantity, 100u);
@@ -38,7 +38,7 @@ TEST(Stp, DifferentAccountsCrossNormally) {
 	Order incoming{2, Side::Buy, 50, 100};
 	incoming.accountId = 8;
 
-	const auto trades = manager.matchOrder(incoming);
+	const auto trades = manager.matchOrder(incoming).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(trades[0].quantity, 100u);
@@ -54,7 +54,7 @@ TEST(Stp, MarketOrderAgainstOwnRestingLimitDoesNotSelfTrade) {
 	resting.accountId = 7;
 	ASSERT_TRUE(manager.addOrder(resting).accepted);
 
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 0, 100, 7, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 0, 100, 7, OrderType::Market}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(matcher.getAsks().at(50).front().quantity, 100u);
@@ -76,7 +76,7 @@ TEST(Stp, OwnOrderAtBestBlocksReachingOtherAccountBehindIt) {
 	otherWorse.accountId = 8;
 	ASSERT_TRUE(manager.addOrder(otherWorse).accepted);
 
-	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 7, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 7, OrderType::Market}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(3), OrderStatus::Cancelled);
@@ -97,7 +97,7 @@ TEST(Stp, OtherAccountAtBestFillsBeforeOwnOrderBlocksTheRest) {
 	ownWorse.accountId = 7;
 	ASSERT_TRUE(manager.addOrder(ownWorse).accepted);
 
-	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 7, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 7, OrderType::Market}).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(trades[0].restingOrderId, 1u);

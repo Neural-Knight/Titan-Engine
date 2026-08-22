@@ -12,7 +12,7 @@ TEST(MarketOrders, BuySweepsMultipleLevels) {
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Sell, 50, 100}).accepted);
 	ASSERT_TRUE(manager.addOrder(Order{2, Side::Sell, 51, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 0, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{3, Side::Buy, 0, 150, 0, OrderType::Market}).trades;
 
 	ASSERT_EQ(trades.size(), 2u);
 	EXPECT_EQ(trades[0].restingOrderId, 1u);
@@ -36,7 +36,7 @@ TEST(MarketOrders, BuyPartialFillDiscardsRemainder) {
 
 	// Market buy for 150 when only 100 is available: takes what it can,
 	// the remaining 50 is discarded, not rested.
-	const auto trades = manager.matchOrder(Order{2, Side::Buy, 0, 150, 0, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{2, Side::Buy, 0, 150, 0, OrderType::Market}).trades;
 
 	ASSERT_EQ(trades.size(), 1u);
 	EXPECT_EQ(trades[0].quantity, 100u);
@@ -50,7 +50,7 @@ TEST(MarketOrders, BuyOnEmptyBookProducesNoTrades) {
 	ReferenceMatcher matcher;
 	OrderManager manager(matcher);
 
-	const auto trades = manager.matchOrder(Order{1, Side::Buy, 0, 100, 0, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{1, Side::Buy, 0, 100, 0, OrderType::Market}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::Cancelled);
@@ -65,7 +65,7 @@ TEST(MarketOrders, SellSweepsMultipleLevels) {
 	ASSERT_TRUE(manager.addOrder(Order{1, Side::Buy, 51, 100}).accepted);
 	ASSERT_TRUE(manager.addOrder(Order{2, Side::Buy, 50, 100}).accepted);
 
-	const auto trades = manager.matchOrder(Order{3, Side::Sell, 0, 150, 0, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{3, Side::Sell, 0, 150, 0, OrderType::Market}).trades;
 
 	ASSERT_EQ(trades.size(), 2u);
 	EXPECT_EQ(trades[0].restingOrderId, 1u);
@@ -84,7 +84,7 @@ TEST(MarketOrders, SellOnEmptyBookProducesNoTrades) {
 	ReferenceMatcher matcher;
 	OrderManager manager(matcher);
 
-	const auto trades = manager.matchOrder(Order{1, Side::Sell, 0, 100, 0, OrderType::Market});
+	const auto trades = manager.matchOrder(Order{1, Side::Sell, 0, 100, 0, OrderType::Market}).trades;
 
 	EXPECT_TRUE(trades.empty());
 	EXPECT_EQ(manager.statusOf(1), OrderStatus::Cancelled);

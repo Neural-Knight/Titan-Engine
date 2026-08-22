@@ -210,11 +210,11 @@ std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& f
     return allTrades;
 }
 
-std::vector<Trade> OrderManager::matchOrder(Order order)
+MatchResult OrderManager::matchOrder(Order order)
 {
     const RejectReason reason = validateNewOrder(order, allKnownOrderIds_);
     if (reason != RejectReason::None)
-        return {};
+        return MatchResult{{}, AcceptResult{false, reason}};
 
     const bool isMarket = order.type == OrderType::Market;
     const bool mayRest = !isMarket && order.tif != TimeInForce::IOC;
@@ -256,7 +256,7 @@ std::vector<Trade> OrderManager::matchOrder(Order order)
         snapshot.status = (filled > 0) ? OrderStatus::PartiallyFilled : OrderStatus::New;
     orders_[order.id] = snapshot;
 
-    return trades;
+    return MatchResult{trades, AcceptResult{true, RejectReason::None}};
 }
 
 std::optional<OrderStatus> OrderManager::statusOf(OrderId id) const
