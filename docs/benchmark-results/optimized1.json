@@ -1,5 +1,5 @@
 {
-  "description": "OptimizedMatcher vs ReferenceMatcher, same scenarios and build type as baseline.json (Module 8), for an apples-to-apples comparison.",
+  "description": "OptimizedMatcher vs ReferenceMatcher, same scenarios and build type as baseline.json, for an apples-to-apples comparison.",
   "date": "2026-08-22",
   "environment_doc": "docs/benchmark-results/environment.md",
   "baseline_reference": "docs/benchmark-results/baseline.json",

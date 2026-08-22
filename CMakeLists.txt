@@ -170,6 +170,24 @@ target_link_libraries(titan_feed_tcp
 )
 titan_apply_release_flags(titan_feed_tcp)
 
+# titan_backtest: file-replay metrics/strategy-hook layer on top of EventReplayer.
+add_library(titan_backtest STATIC
+	src/backtest/backtest_runner.cpp
+)
+
+target_include_directories(titan_backtest
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(titan_backtest
+	PUBLIC
+		titan_replay
+		titan_market_data
+)
+titan_apply_release_flags(titan_backtest)
+
 # titan_platform: thread pinning, Linux-only with no-op stubs elsewhere.
 add_library(titan_platform STATIC
 	src/platform/thread_affinity.cpp

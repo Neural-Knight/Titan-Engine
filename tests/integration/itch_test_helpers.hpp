@@ -5,7 +5,7 @@
 
 #include "titan/feed/itch/messages.hpp"
 
-// Shared ItchMessage builders for hand-crafted Module 10/11 test sessions.
+// Shared ItchMessage builders for hand-crafted book-builder/engine-replay test sessions.
 // `inline` so this header can be included from multiple test translation units.
 namespace titan::test {
 

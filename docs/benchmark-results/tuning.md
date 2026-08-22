@@ -30,8 +30,7 @@ This applies `-O2` + `NDEBUG` to `titan_reference`, `titan_optimized`,
 `titan_pipeline`, and every `bench_*` binary -- not to `titan_tests` or
 `titan_itch`/`titan_replay` (unused by benchmarks). Default
 `cmake -S . -B build && cmake --build build` is untouched: the option
-defaults `OFF`, so the default path is byte-for-byte the same flags as
-before this module.
+defaults `OFF`, so the default path keeps its existing flags.
 
 ## Debug (default) vs Release (`TITAN_BENCHMARK_RELEASE=ON`)
 
@@ -68,7 +67,7 @@ of no `-O` flag at all.
 
 The pipeline's enqueue-to-applied latency is still ~2-4 orders of magnitude
 above its own direct-path latency in *both* builds, for the same reason
-documented in `module-14-pipeline.json`: this benchmark's producer has no
+documented in `pipeline.json`: this benchmark's producer has no
 real per-op cost, so it saturates the 4095-slot `SpscQueue` almost
 immediately and stays saturated for the whole run -- `-O2` makes the
 consumer drain faster in absolute terms, but doesn't remove the queueing
@@ -105,7 +104,7 @@ misses for the run. Template output shape (fill in from an actual Linux run):
 Not exercised here since this is a macOS dev machine -- do not read the
 placeholder shape above as real numbers.
 
-## Honest caveats
+## Caveats
 
 - Absolute Debug/Release numbers above are specific to this Apple M5 Pro
   and are not comparable across machines -- the point is the *relative*

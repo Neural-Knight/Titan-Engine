@@ -44,9 +44,9 @@ bench: build
 	$(BUILD_DIR)/benchmarks/bench_multi_symbol
 	$(BUILD_DIR)/benchmarks/bench_snapshot
 
-## bench-baseline: run benches; update docs/benchmark-results/module-8-baseline.json by hand.
+## bench-baseline: run benches; update docs/benchmark-results/baseline.json by hand.
 bench-baseline: bench
-	@echo "Update docs/benchmark-results/module-8-baseline.json with the numbers above."
+	@echo "Update docs/benchmark-results/baseline.json with the numbers above."
 
 ## help: list available targets.
 help:

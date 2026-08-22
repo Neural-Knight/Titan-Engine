@@ -1,4 +1,4 @@
-# Module 8: throughput via Google Benchmark, latency via titan_bench's harness.
+# ReferenceMatcher throughput via Google Benchmark, latency via titan_bench's harness.
 set(TITAN_BENCH_TARGETS bench_match bench_cancel bench_multi_symbol bench_snapshot)
 
 add_executable(bench_match bench_match.cpp)
@@ -21,7 +21,7 @@ foreach(target ${TITAN_BENCH_TARGETS})
 	titan_apply_release_flags(${target})
 endforeach()
 
-# Module 12: same steady_limit_flow/burst_crossing scenarios, OptimizedMatcher instead.
+# Same steady_limit_flow/burst_crossing scenarios, OptimizedMatcher instead.
 add_executable(bench_match_optimized bench_match_optimized.cpp)
 
 target_link_libraries(bench_match_optimized
@@ -39,7 +39,7 @@ target_compile_definitions(bench_match_optimized
 )
 titan_apply_release_flags(bench_match_optimized)
 
-# Module 13: allocation counting via global operator new/delete overrides,
+# Allocation counting via global operator new/delete overrides,
 # scoped to this one executable -- does not affect titan_tests.
 add_executable(bench_allocations bench_allocations.cpp)
 
@@ -55,7 +55,7 @@ target_compile_definitions(bench_allocations
 )
 titan_apply_release_flags(bench_allocations)
 
-# Module 14: single-threaded direct replay vs StagedProcessor's SPSC pipeline.
+# Single-threaded direct replay vs StagedProcessor's SPSC pipeline.
 add_executable(bench_pipeline bench_pipeline.cpp)
 
 target_link_libraries(bench_pipeline

@@ -16,7 +16,7 @@ constructed once, alive for the process lifetime -- rather than the
 `bench_match*` convention.
 
 Build type: no `CMAKE_BUILD_TYPE` set (debug-equivalent), same as
-`baseline.json` and `module-12-optimized.json`, for a consistent comparison.
+`baseline.json` and `optimized1.json`, for a consistent comparison.
 
 ## Results
 
@@ -44,11 +44,11 @@ Pooling covers **one** of four allocation sources per resting order, not all of 
    `include/titan/core/memory_pool.hpp`). After warmup this is genuinely
    zero new heap traffic: a filled/canceled order's slot returns to the
    pool and is reused by *any* future order, not just ones at the same
-   price (this also fixes Module 12's "unbounded per-level memory growth"
-   caveat as a side effect).
+   price -- this also fixes an earlier unbounded per-level memory growth
+   issue in `OptimizedMatcher`, as a side effect.
 2. **`Level::orders` (`vector<Order*>`)** -- still reallocates as it grows.
-   Module 13 adds `reserve(8)` on a freshly-opened level to cut early
-   regrowth, but a level that closes (`liveCount==0`) is still erased from
+   A `reserve(8)` on a freshly-opened level cuts early regrowth, but a
+   level that closes (`liveCount==0`) is still erased from
    the map and its vector's backing buffer freed; reopening that price
    later starts from an empty vector again. Not pooled.
 3. **`std::map<Price, Level>` node** -- one heap node per distinct open
@@ -65,9 +65,9 @@ from (2)-(4), it only removes what was ReferenceMatcher's per-order
 *payload-sized* share of that cost. Retaining empty (`liveCount==0`) levels
 instead of erasing them would reduce (2)-(3) further, but `bestBid`/
 `bestAsk`/`bidDepth`/`askDepth` would then need to skip zombie levels to
-stay parity-correct with `ReferenceMatcher` -- judged too risky for this
-module's constraint ("must remain bit-for-bit equivalent... on all parity
-tests") versus the gain; left as future work.
+stay parity-correct with `ReferenceMatcher` -- judged too risky against the requirement that
+`OptimizedMatcher` stay bit-for-bit equivalent on all parity tests, versus
+the gain; left as future work.
 
 Also note: `matchOrder`'s `vector<Trade>` return value allocates on any
 crossing call, identically for both matchers -- an `OrderManager`/`IMatcher`

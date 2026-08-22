@@ -25,3 +25,10 @@ target_link_libraries(itch_listen
 	PRIVATE
 		titan_feed_tcp
 )
+
+add_executable(backtest_run backtest_run.cpp)
+
+target_link_libraries(backtest_run
+	PRIVATE
+		titan_backtest
+)

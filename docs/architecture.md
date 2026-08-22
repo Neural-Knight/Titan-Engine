@@ -1,63 +1,80 @@
-# Titan-engine Architecture (Module 1 snapshot)
+# titan-engine architecture
 
-## Current state
+A single-process C++20 exchange: order matching, ITCH market-data ingestion
+(file and TCP), and a thin backtesting layer, all built as small static
+libraries behind a few narrow interfaces.
 
-Single-symbol reference matching engine, restructured behind an interface
-so later modules can add an optimized implementation without touching
-callers.
+## Libraries
 
-- `titan_reference` (static lib) — `ReferenceMatcher`, implements `IMatcher`.
-  Simple `std::map` (price levels) + `std::list` (FIFO per level) +
-  `std::unordered_map` (order lookup for O(1) cancel). This is the
-  correctness oracle for everything downstream — not optimized, not touched
-  once behavior is locked in by tests.
-- `IMatcher` (`include/titan/book/i_matcher.hpp`) — the contract:
-  `addOrder`, `cancelOrder`, `matchOrder`, `bestBid`, `bestAsk`. Both the
-  reference and, eventually, the optimized matcher implement this so
-  callers and parity tests can swap implementations behind a pointer.
-- Shared types (`Order`, `Trade`, `Side`, `OrderId`, `Price`, `Quantity`,
-  `PriceLevels`, `OrderLocation`) live in `include/titan/core/types.hpp`,
-  namespace `titan`.
+| Library | Purpose |
+|---|---|
+| `titan_reference` | `ReferenceMatcher` — the correctness oracle. Simple `std::map` + `std::list` + `std::unordered_map`; never optimized. |
+| `titan_optimized` | `OptimizedMatcher` — same `IMatcher` contract, pooled order storage, tombstoned price levels. Parity-tested against `ReferenceMatcher`. |
+| `titan_exchange` | `OrderManager` (validation, lifecycle, self-trade prevention) and `InstrumentRegistry` (per-symbol matcher + event log). |
+| `titan_book` | Cross-cutting book invariants checked against both matchers. |
+| `titan_market_data` | `EventPublisher` — derives `ExecutionReport`s from `InstrumentRegistry`'s event log. |
+| `titan_itch` | ITCH 5.0 framing/decoding (`ItchParser`) and feed-side book reconstruction (`ItchBookBuilder`). |
+| `titan_replay` | `ItchEngineAdapter` + `ParityChecker` + `EventReplayer` — drives `InstrumentRegistry` from decoded ITCH and checks it against `ItchBookBuilder`. |
+| `titan_pipeline` | Lock-free SPSC ring buffer + `StagedProcessor` — a background consumer thread driving `InstrumentRegistry`. |
+| `titan_feed_tcp` | `SocketFeedReader` + `ItchSocketPipeline` — TCP client ingestion of ITCH-framed bytes, wired into the same replay/adapter path as file replay. |
+| `titan_backtest` | `BacktestRunner` — file-replay metrics (fills, rejects, trade volume, final book) plus an optional strategy callback hook. |
+| `titan_platform` | Thread pinning (`pinThread`/`pinCurrentThreadToCpu`), Linux-only with no-op fallbacks elsewhere. |
+| `titan_bench` | Latency histogram, benchmark harness, and scenario loader shared by `benchmarks/`. |
+
+## Data flow
+
+```
+ITCH bytes (file or TCP)
+    │
+    ▼
+ItchParser  (framing + decode)
+    │
+    ├──▶ ItchBookBuilder      (feed-side oracle book, for parity checks)
+    │
+    └──▶ ItchEngineAdapter ──▶ InstrumentRegistry ──▶ OrderManager ──▶ IMatcher
+```
+
+`IMatcher` is the matching contract (`addOrder`, `cancelOrder`, `matchOrder`,
+`bestBid`/`bestAsk`, `bidDepth`/`askDepth`). `ReferenceMatcher` implements it
+as the correctness oracle; `OptimizedMatcher` implements the same contract
+and is checked against the reference on every parity/fuzz/ITCH-replay test.
+`InstrumentRegistry` picks one or the other per instance via `MatcherBackend`.
 
 ```mermaid
 flowchart LR
     Caller -->|IMatcher*| IMatcher
     IMatcher -.implements.-> ReferenceMatcher
-    IMatcher -.implements.-> OptimizedMatcher["OptimizedMatcher (Module 12)"]
+    IMatcher -.implements.-> OptimizedMatcher
     ReferenceMatcher --> Trades
     OptimizedMatcher --> Trades
     ReferenceMatcher -.parity check.- OptimizedMatcher
+
+    ItchBytes[ITCH bytes] --> Parser[ItchParser]
+    Parser --> BookBuilder[ItchBookBuilder]
+    Parser --> Adapter[ItchEngineAdapter]
+    Adapter --> Registry[InstrumentRegistry]
+    Registry --> OrderManager
+    OrderManager --> IMatcher
+    BookBuilder -.parity check.- Registry
 ```
+
+Two independent ingestion paths feed the same `ItchEngineAdapter`: a
+one-shot file replay (`EventReplayer`) and a streaming TCP client
+(`SocketFeedReader` / `ItchSocketPipeline`). Both produce the same book
+state for the same byte stream. A separate SPSC pipeline (`StagedProcessor`)
+can drive `InstrumentRegistry` from a background consumer thread instead of
+the calling thread, decoupling ingestion from matching.
 
 ## Repo layout
 
 ```
 titan-engine/
-├── include/titan/
-│   ├── core/types.hpp       # Order, Trade, Side, Price, ...
-│   └── book/i_matcher.hpp   # IMatcher interface
-├── reference/
-│   ├── order_book.hpp       # ReferenceMatcher : IMatcher
-│   └── order_book.cpp
-├── tests/
-│   ├── CMakeLists.txt
-│   └── unit/test_reference_matcher.cpp
-├── benchmarks/               # stub; Module 8 adds real benchmarks
-├── docs/
-│   ├── architecture.md       # this file
-│   └── benchmark-results/    # versioned baselines, populated from Module 8
-└── .github/workflows/ci.yml
+├── include/titan/     # public headers, mirrors src/ by subsystem
+├── src/                # library implementations
+├── reference/          # ReferenceMatcher — the correctness oracle, kept apart deliberately
+├── tools/               # CLIs: replay_engine, itch_listen, itch_dump, itch_replay, backtest_run
+├── benchmarks/          # Google Benchmark executables + scenario files
+├── tests/               # unit, integration, parity, and fuzz tests (CTest)
+├── docs/                # this file, ITCH notes, backtest notes, benchmark results
+└── .github/workflows/   # CI
 ```
-
-## Planned modules
-
-Order types & lifecycle -> market/IOC orders -> cancel/replace & STP ->
-invariants/fuzzing -> multi-symbol & events -> execution reports & market
-data -> benchmark harness -> ITCH parser -> ITCH book reconstruction ->
-historical replay -> optimized matcher (parity-tested against
-`ReferenceMatcher`) -> memory/cache optimization -> lock-free pipeline ->
-low-latency tuning -> socket feed handler -> (optional) tick storage,
-backtesting, AF_XDP.
-
-Full detail lives in the project roadmap (module-by-module goals,
-components, tests, benchmarks, definition of done).

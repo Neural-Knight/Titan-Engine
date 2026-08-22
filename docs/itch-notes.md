@@ -1,18 +1,17 @@
-# ITCH 5.0 parser
+# ITCH feed notes
 
-Ingestion only: framing + byte-level decode into typed structs. Book
-reconstruction is Module 10, `InstrumentRegistry` wiring is Module 11,
-TCP socket ingestion is Module 16 (below).
+Covers ITCH 5.0 framing/decoding, the feed-side book builder, engine replay,
+and TCP ingestion.
 
-## Message types implemented
+## Parser
 
-`include/titan/feed/itch/messages.hpp`:
-
+`include/titan/feed/itch/messages.hpp` defines the decoded message types;
+`ItchParser` (`parser.hpp`/`decoder.cpp`) handles framing and byte decode.
 
 | Type | Name                      | Notes                                                                                                                                          |
 | ---- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `S`  | System Event              | full fields                                                                                                                                    |
-| `R`  | Stock Directory           | full ITCH 5.0 field list, 38-byte payload (added `issueSubType` beyond this module's original field list to hit the real byte count) |
+| `R`  | Stock Directory           | full ITCH 5.0 field list, 38-byte payload (includes `issueSubType` to match the real byte count) |
 | `A`  | Add Order                 | no MPID                                                                                                                                        |
 | `F`  | Add Order with MPID       | `AddOrderMessage` + 4-byte attribution                                                                                                         |
 | `E`  | Order Executed            |                                                                                                                                                |
@@ -22,15 +21,13 @@ TCP socket ingestion is Module 16 (below).
 | `U`  | Order Replace             |                                                                                                                                                |
 | `T`  | Timestamp (seconds)       | **not part of real ITCH 5.0** -- see below                                                                                                     |
 
-
 Real ITCH 5.0 has no standalone seconds-timestamp message; every message
-carries its own 6-byte nanoseconds-since-midnight field instead. `T` here is
-modeled loosely on ITCH 4.1's seconds message, included only because this
-module's test list asked for one to exercise timestamp monotonicity. A real
-feed handler should track time from each message's own `timestamp` field, not
-from a `T` message.
+carries its own 6-byte nanoseconds-since-midnight field instead. `T` is
+modeled loosely on ITCH 4.1's seconds message, kept only to exercise
+timestamp monotonicity in tests. A real feed handler should track time from
+each message's own `timestamp` field, not from a `T` message.
 
-## Framing
+### Framing
 
 Each record: 2-byte big-endian length (covers the 1-byte type + payload),
 then the type byte, then `length - 1` payload bytes. `ItchParser::feed()`
@@ -43,7 +40,7 @@ big-endian on what's usually a little-endian host).
 
 Price fields are fixed-point: wire value = real price × 10000.
 
-## Corrupt input handling
+### Corrupt input handling
 
 `ItchParser` never throws or reads out of bounds:
 
@@ -54,35 +51,16 @@ field is dropped and scanning resumes from the next byte. Counted in
 - Unknown type byte, or a payload size that doesn't match the known type's
 fixed layout: `decodeMessage` returns `false`; the caller gets an
 `ItchParseResult{ok=false, rawType, ...}` so it can still see and count
-what was skipped. (The raw payload bytes for that record are not retained
-in the result -- the task marked exposing them as optional, and doing so
-safely would mean copying out of the internal buffer before it's erased.)
+what was skipped. The raw payload bytes for that record are not retained in
+the result -- exposing them would mean copying out of the internal buffer
+before it's erased.
 
-
-
-## Running `itch_dump`
-
-```
-build/tools/itch_dump tests/fixtures/itch/sample_session.itch
-```
-
-Prints a decoded-message count per type, then a `total: N decoded, M skipped`
-line.
-
-## Getting real ITCH sample data
-
-NASDAQ publishes sample TotalView-ITCH files for testing at
-`https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/` (dated `.NASDAQ_ITCH50.gz`
-files). Download one, `gunzip` it, and point `itch_dump` at the raw `.bin`.
-This module's own tests use only hand-crafted fixtures
-(`tests/fixtures/itch/sample_session.itch`, generated for this session) --
-no real NASDAQ file is bundled here.
-
-## Module 10: Book Builder
+## Book builder
 
 `include/titan/feed/itch/book_builder.hpp` (`ItchBookBuilder`) turns decoded
-`ItchMessage`s into per-`stockLocate` resting-order state, feed-side only --
-not wired into `InstrumentRegistry`/`ReferenceMatcher` (Module 11).
+`ItchMessage`s into per-`stockLocate` resting-order state. It's feed-side
+only -- a standalone oracle used for parity checks, not wired into
+`InstrumentRegistry`/`ReferenceMatcher` directly (see Engine replay below).
 
 - Message types that affect book state: `R` (registers locate -> symbol, no
 book change), `A`/`F` (insert resting order), `E`/`C` (reduce by executed
@@ -94,22 +72,17 @@ Order Replace carries no side field of its own).
 per `stockLocate` for the life of the resting order.
 - `A`/`E`/`C`/`X`/`D`/`U` for a `stockLocate` with no prior `R` are ignored
 outright (not queued) -- there is no symbol to attribute them to yet.
-- `S` with `eventCode == 'C'` (End of Messages, the real ITCH 5.0 code) clears
-all book state via `reset()`. The task prompt that requested this loosely
-called the trigger "'E' (end of messages)"; real ITCH 5.0 uses `'E'` for End
-of System Hours and `'C'` for End of Messages, so `'C'` was used to stay
+- `S` with `eventCode == 'C'` (End of Messages, the real ITCH 5.0 code)
+clears all book state via `reset()`. Real ITCH 5.0 uses `'E'` for End of
+System Hours and `'C'` for End of Messages; `'C'` is used here to stay
 spec-correct.
-- `T` (`TimestampSecondsMessage`) carries no `stockLocate` and is ignored, as
-elsewhere in this module.
+- `T` (`TimestampSecondsMessage`) carries no `stockLocate` and is ignored.
 
-Deferred to Module 11: feeding `ItchBookBuilder` state into
-`InstrumentRegistry` so a real feed can drive the exchange-side book.
-
-## Module 11: Engine Replay
+## Engine replay
 
 `titan_replay` (`ItchEngineAdapter`, `ParityChecker`, `EventReplayer`) drives
-`InstrumentRegistry` from the same decoded messages `ItchBookBuilder` sees, so
-the exchange-side book can be checked against the feed-side one.
+`InstrumentRegistry` from the same decoded messages `ItchBookBuilder` sees,
+so the exchange-side book can be checked against the feed-side one.
 
 - `R`/`A`/`F`/`D` map onto `createInstrument`/`submitOrder`/`cancelOrder`
 directly, using `orderReferenceNumber` as the `OrderId`.
@@ -122,32 +95,31 @@ injects a synthetic IOC limit on the opposite side, sized to the executed
 shares, at the execution price (`C`) or the resting order's own price (`E`).
 Synthetic incoming ids start at 1,000,000,000 to stay clear of ITCH
 reference numbers. This assumes the targeted resting order is FIFO-front at
-that price -- true for the single-order-per-level sessions this module's
-tests use, but not guaranteed in general (see limitations below).
+that price -- true for the single-order-per-level sessions the tests use,
+but not guaranteed in general (see limitations below).
 - `U` (Replace) is the one ITCH message `OrderManager::cancelReplace` can't
-model directly: ITCH assigns a *new* reference number, but
-`cancelReplace` only allows a same-id amend. The adapter keeps the
-replaced order under its original engine `OrderId` and maintains its own
+model directly: ITCH assigns a *new* reference number, but `cancelReplace`
+only allows a same-id amend. The adapter keeps the replaced order under its
+original engine `OrderId` and maintains its own
 `orderReferenceNumber -> OrderId` map, so later messages against the new
 ITCH ref resolve to the same underlying engine order.
 - `S` with `eventCode == 'C'` resets both the adapter's own maps and the
-`InstrumentRegistry` (a new `InstrumentRegistry::reset()`, purely additive),
-mirroring `ItchBookBuilder::reset()`.
+`InstrumentRegistry` (`InstrumentRegistry::reset()`), mirroring
+`ItchBookBuilder::reset()`.
 
 Run: `build/tools/replay_engine <path> [--checkpoint N] [--matcher reference|optimized]`
 -- prints decoded/skipped counts, parity summary, first mismatches, and feed
-vs. engine trade volume; exits 1 if any mismatch was found. ITCH parity is
-verified against both `InstrumentRegistry` matcher backends (Module 12).
+vs. engine trade volume; exits 1 if any mismatch was found. Parity is
+verified against both `InstrumentRegistry` matcher backends.
 
 ### Known limitations
 
-- Only the ITCH types this module's parser implements are handled; anything
-else was already dropped at the decode stage.
+- Only the ITCH types the parser implements are handled; anything else was
+already dropped at the decode stage.
 - Parity compares aggregated top-of-book level quantity, not per-order FIFO
 identity within a level -- if two resting orders share a price and an `E`
 targets the one behind the front, the synthetic-order approach above would
-hit the front order instead. Not exercised by this module's hand-crafted
-sessions.
+hit the front order instead. Not exercised by the hand-crafted test sessions.
 
 ## TCP feed
 
@@ -158,9 +130,9 @@ callback on one dedicated thread -- parsing stays single-threaded since
 the byte-to-message step. `titan/feed/tcp/itch_socket_pipeline.hpp`
 (`ItchSocketPipeline`) wires that callback into the same
 `ItchBookBuilder` + `ItchEngineAdapter` + `ParityChecker` combination
-`EventReplayer` uses for files, just kept alive across the whole TCP
-session instead of one-shot per call. Neither `ItchParser` nor
-`ItchEngineAdapter` was changed -- this module only adds a byte source.
+`EventReplayer` uses for files, kept alive across the whole TCP session
+instead of one-shot per call. Neither `ItchParser` nor `ItchEngineAdapter`
+was changed for this -- it only adds a byte source.
 
 Run: `build/tools/itch_listen --host H --port P [--matcher reference|optimized] [--checkpoint N]`
 -- connects as a client, prints the same decoded/skipped/parity/trade-volume
@@ -174,7 +146,18 @@ identical on macOS and Linux, no `#ifdef` needed for the default path.
 `stop()` unblocks a pending `recv`/`poll` via `shutdown(fd, SHUT_RDWR)` from
 another thread, with a 200ms `poll()` timeout as a backstop either way.
 Linux-only fast paths (`epoll`, `SO_BUSY_POLL`) were considered and
-deliberately not implemented -- `poll()` is enough for this module's scope
-and keeps macOS and Linux on one code path. Not a production NASDAQ
-connectivity claim -- local/mock servers only, proven via loopback tests.
+deliberately not implemented -- `poll()` covers the current scope and keeps
+macOS and Linux on one code path. Not a production NASDAQ connectivity
+claim -- local/mock servers only, proven via loopback tests.
 
+## Tools
+
+`build/tools/itch_dump <path>` decodes a file and prints a per-type message
+count, then a `total: N decoded, M skipped` line.
+
+NASDAQ publishes sample TotalView-ITCH files for testing at
+`https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/` (dated `.NASDAQ_ITCH50.gz`
+files). Download one, `gunzip` it, and point `itch_dump` at the raw `.bin`.
+The tests here use only a hand-crafted fixture
+(`tests/fixtures/itch/sample_session.itch`) -- no real NASDAQ file is
+bundled in this repo.

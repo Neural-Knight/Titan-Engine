@@ -12,7 +12,7 @@
 namespace titan {
 
 // Per-symbol resting-order book built from decoded ITCH messages.
-// Feed-side only: not wired into InstrumentRegistry/ReferenceMatcher (Module 11).
+// Feed-side only: not wired into InstrumentRegistry/ReferenceMatcher directly.
 class ItchBookBuilder {
 public:
     void apply(const ItchMessage& message);

@@ -4,7 +4,7 @@
 - **CPU**: Apple M5 Pro, 18 logical CPUs
 - **RAM**: 48 GiB
 - **Compiler**: Apple clang 21.0.0 (Xcode toolchain), `-std=c++20`
-- **Build type**: no `CMAKE_BUILD_TYPE` set by this CMakeLists (debug-equivalent, no `-O` flags). Absolute latency/throughput numbers here will not transfer to an `-O2`/`-O3` build; use them only to catch regressions run-to-run on this same unoptimized build until Module 8's harness gets a Release config wired in.
+- **Build type**: no `CMAKE_BUILD_TYPE` set by this CMakeLists (debug-equivalent, no `-O` flags). Absolute latency/throughput numbers here will not transfer to an `-O2`/`-O3` build (see the Release profile below); use them only to catch regressions run-to-run on this same unoptimized build.
 - **Google Benchmark**: v1.8.3 (FetchContent)
 
 ## Frequency pinning / noise
@@ -21,7 +21,7 @@ This does not affect the actual `steady_clock`-based timings (Google Benchmark's
 - **macOS**: to reduce thermal/frequency-scaling noise before a benchmark run, sample `sudo powermetrics --samplers cpu_power -i 1000 -n 5` beforehand to confirm the CPU isn't already thermally throttled, and close other heavy apps. There is no user-facing P-state pin on Apple silicon equivalent to Linux's `cpupower frequency-set`.
 - **Linux** (for future runs on Linux CI/hardware): pin governor with `sudo cpupower frequency-set --governor performance`, and prefer `perf stat -d ./bench_match` for cache/branch-miss detail; `perf record -g ./bench_match && perf report` for flamegraphs. Not exercised on this machine -- macOS has no `perf`.
 
-## Optional Release benchmark profile (Module 15)
+## Optional Release benchmark profile
 
 By default this CMakeLists still applies no `-O` flags anywhere (as above).
 To build benchmark binaries and their direct library deps with `-O2 -DNDEBUG`
@@ -34,7 +34,7 @@ cmake --build build-rel
 
 `titan_tests` is unaffected either way, so `cmake -S . -B build && make test`
 keeps its current debug-equivalent timing. See
-`docs/benchmark-results/module-15-tuning.md` for Debug-vs-Release numbers.
+`docs/benchmark-results/tuning.md` for Debug-vs-Release numbers.
 
 ## Reproducing this baseline
 
