@@ -19,6 +19,15 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+	googlebenchmark
+	URL https://github.com/google/benchmark/archive/refs/tags/v1.8.3.zip
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(googlebenchmark)
+
 # titan_reference: correctness-oracle matcher. Do not optimize.
 add_library(titan_reference STATIC
 	reference/order_book.cpp
@@ -58,6 +67,19 @@ add_library(titan_market_data STATIC
 )
 
 target_include_directories(titan_market_data
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# titan_bench: histogram + harness + scenario loader, used by benchmarks/.
+add_library(titan_bench STATIC
+	src/bench/latency_histogram.cpp
+	src/bench/harness.cpp
+	src/bench/scenario.cpp
+)
+
+target_include_directories(titan_bench
 	PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/include
 		${CMAKE_CURRENT_SOURCE_DIR}

@@ -1,0 +1,72 @@
+{
+  "description": "First recorded baseline for ReferenceMatcher/OrderManager/InstrumentRegistry. All future optimizations compare against this.",
+  "date": "2026-08-22",
+  "environment_doc": "docs/benchmark-results/environment.md",
+  "scenarios": {
+    "bench_match/steady_limit_flow": {
+      "google_benchmark_name": "BM_SteadyLimitFlow",
+      "ops_per_scenario_replay": 20000,
+      "iterations": 18,
+      "throughput_ops_per_sec": 501650,
+      "mean_replay_time_ns": 39898044,
+      "latency_ns_full_replay": {
+        "p50": 39858300,
+        "p95": 42510800,
+        "p99": 43456200,
+        "p99_9": 43456200
+      }
+    },
+    "bench_match/burst_crossing": {
+      "google_benchmark_name": "BM_BurstCrossing",
+      "ops_per_scenario_replay": 20000,
+      "iterations": 17,
+      "throughput_ops_per_sec": 496397,
+      "mean_replay_time_ns": 40323147
+    },
+    "bench_cancel/cancel_heavy": {
+      "google_benchmark_name": "BM_CancelHeavy",
+      "ops_per_scenario_replay": 20000,
+      "seed_orders": 5000,
+      "iterations": 21,
+      "throughput_ops_per_sec": 595703,
+      "mean_replay_time_ns": 33601250,
+      "latency_ns_full_replay": {
+        "p50": 33694700,
+        "p95": 36322300,
+        "p99": 36946600,
+        "p99_9": 36946600
+      }
+    },
+    "bench_multi_symbol/multi_symbol": {
+      "google_benchmark_name": "BM_MultiSymbolMix",
+      "ops_per_scenario_replay": 20000,
+      "symbol_count": 100,
+      "iterations": 13,
+      "throughput_ops_per_sec": 376818,
+      "mean_replay_time_ns": 53119045,
+      "latency_ns_full_replay": {
+        "p50": 52950700,
+        "p95": 56992200,
+        "p99": 57831900,
+        "p99_9": 57831900
+      }
+    },
+    "bench_snapshot/top_10_after_20_levels": {
+      "google_benchmark_name": "BM_SnapshotTop10",
+      "iterations": 379614,
+      "throughput_ops_per_sec": 547829,
+      "mean_call_time_ns": 1826.8,
+      "latency_ns_per_call": {
+        "p50": 1875,
+        "p95": 2000,
+        "p99": 2333,
+        "p99_9": 5917
+      }
+    }
+  },
+  "notes": [
+    "match/cancel/multi_symbol latency percentiles are per full scenario replay (measureIters=30), not per individual op -- see 1-line comment in each bench_*.cpp main().",
+    "snapshot latency is per-call (measureIters=10000), the natural unit for that path.",
+    "library_build_type was debug (no -O flags set by this CMakeLists) -- absolute numbers will drop substantially under -O2/-O3; compare relative regressions run-to-run on the same build type."
+  ]
+}

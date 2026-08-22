@@ -1,3 +1,21 @@
-# Module 8 wires up Google Benchmark here (bench_match, bench_cancel,
-# bench_multi_symbol, ...) against titan_reference and, later, the
-# optimized matcher. No benchmark targets yet.
+# Module 8: throughput via Google Benchmark, latency via titan_bench's harness.
+set(TITAN_BENCH_TARGETS bench_match bench_cancel bench_multi_symbol bench_snapshot)
+
+add_executable(bench_match bench_match.cpp)
+add_executable(bench_cancel bench_cancel.cpp)
+add_executable(bench_multi_symbol bench_multi_symbol.cpp)
+add_executable(bench_snapshot bench_snapshot.cpp)
+
+foreach(target ${TITAN_BENCH_TARGETS})
+	target_link_libraries(${target}
+		PRIVATE
+			titan_exchange
+			titan_market_data
+			titan_bench
+			benchmark::benchmark
+	)
+	target_compile_definitions(${target}
+		PRIVATE
+			TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
+	)
+endforeach()

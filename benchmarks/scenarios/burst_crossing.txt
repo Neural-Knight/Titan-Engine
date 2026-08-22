@@ -1,0 +1,9 @@
+# Heavy match traffic against a thin, single-symbol book.
+name=burst_crossing
+symbolCount=1
+orderCount=20000
+seed=43
+addWeight=0.2
+cancelWeight=0.0
+matchWeight=0.8
+snapshotWeight=0.0

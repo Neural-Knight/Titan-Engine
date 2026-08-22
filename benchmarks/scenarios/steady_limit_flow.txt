@@ -1,0 +1,9 @@
+# Mostly resting GTC limits with a modest crossing tail.
+name=steady_limit_flow
+symbolCount=1
+orderCount=20000
+seed=42
+addWeight=0.8
+cancelWeight=0.0
+matchWeight=0.2
+snapshotWeight=0.0

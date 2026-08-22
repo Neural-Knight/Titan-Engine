@@ -9,7 +9,7 @@ CTEST  ?= $(shell command -v ctest  2>/dev/null || echo /opt/homebrew/bin/ctest)
 
 BUILD_DIR ?= build
 
-.PHONY: all configure build test retest clean rebuild help
+.PHONY: all configure build test retest clean rebuild bench bench-baseline help
 
 # Default target: build everything.
 all: build
@@ -36,6 +36,17 @@ clean:
 
 ## rebuild: clean then build from scratch.
 rebuild: clean build
+
+## bench: build and run all benchmark binaries.
+bench: build
+	$(BUILD_DIR)/benchmarks/bench_match
+	$(BUILD_DIR)/benchmarks/bench_cancel
+	$(BUILD_DIR)/benchmarks/bench_multi_symbol
+	$(BUILD_DIR)/benchmarks/bench_snapshot
+
+## bench-baseline: run benches; update docs/benchmark-results/module-8-baseline.json by hand.
+bench-baseline: bench
+	@echo "Update docs/benchmark-results/module-8-baseline.json with the numbers above."
 
 ## help: list available targets.
 help:

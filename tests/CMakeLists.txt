@@ -10,6 +10,8 @@ add_executable(titan_tests
 	unit/test_multi_symbol.cpp
 	unit/test_execution_reports.cpp
 	unit/test_book_snapshots.cpp
+	unit/test_latency_histogram.cpp
+	unit/test_scenario_loader.cpp
 	integration/test_event_dispatch.cpp
 	fuzz/fuzz_order_book.cpp
 )
@@ -19,10 +21,16 @@ target_include_directories(titan_tests
 		${CMAKE_CURRENT_SOURCE_DIR}/fuzz
 )
 
+target_compile_definitions(titan_tests
+	PRIVATE
+		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../benchmarks/scenarios"
+)
+
 target_link_libraries(titan_tests
 	PRIVATE
 		titan_book
 		titan_market_data
+		titan_bench
 		GTest::gtest_main
 )
 

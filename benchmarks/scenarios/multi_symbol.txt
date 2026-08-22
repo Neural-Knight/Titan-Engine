@@ -1,0 +1,9 @@
+# 100-symbol round-robin mix of add/match/cancel.
+name=multi_symbol
+symbolCount=100
+orderCount=20000
+seed=45
+addWeight=0.5
+cancelWeight=0.2
+matchWeight=0.3
+snapshotWeight=0.0

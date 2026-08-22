@@ -1,0 +1,9 @@
+# 50/50 cancel/add against a pre-seeded book.
+name=cancel_heavy
+symbolCount=1
+orderCount=20000
+seed=44
+addWeight=0.5
+cancelWeight=0.5
+matchWeight=0.0
+snapshotWeight=0.0
