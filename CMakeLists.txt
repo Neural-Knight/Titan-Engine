@@ -44,5 +44,17 @@ target_link_libraries(titan_exchange
 		titan_reference
 )
 
+# titan_book: cross-cutting book invariants (Module 5), checked against
+# both the concrete ReferenceMatcher and OrderManager. Links titan_exchange
+# (which already pulls in titan_reference) since invariants.cpp verifies both.
+add_library(titan_book STATIC
+	src/book/invariants.cpp
+)
+
+target_link_libraries(titan_book
+	PUBLIC
+		titan_exchange
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
