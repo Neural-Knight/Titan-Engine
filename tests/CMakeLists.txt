@@ -14,6 +14,8 @@ add_executable(titan_tests
 	unit/test_scenario_loader.cpp
 	unit/test_itch_parser.cpp
 	integration/test_event_dispatch.cpp
+	integration/test_itch_book_builder.cpp
+	integration/test_itch_checkpoints.cpp
 	fuzz/fuzz_order_book.cpp
 )
 

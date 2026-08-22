@@ -78,11 +78,30 @@ This module's own tests use only hand-crafted fixtures
 (`tests/fixtures/itch/sample_session.itch`, generated for this session) --
 no real NASDAQ file is bundled here.
 
-## Deferred to Module 10 (book builder)
+## Module 10: Book Builder
 
-- Turning `AddOrder`/`OrderExecuted`/`OrderCancel`/`OrderDelete`/`OrderReplace`
-into actual resting-order state per symbol.
-- Using `StockDirectory`'s stock-locate -> symbol mapping to route decoded
-messages to the right `InstrumentRegistry` symbol.
-- Any notion of session start/end (`S` event codes) driving book lifecycle.
+`include/titan/feed/itch/book_builder.hpp` (`ItchBookBuilder`) turns decoded
+`ItchMessage`s into per-`stockLocate` resting-order state, feed-side only --
+not wired into `InstrumentRegistry`/`ReferenceMatcher` (Module 11).
+
+- Message types that affect book state: `R` (registers locate -> symbol, no
+book change), `A`/`F` (insert resting order), `E`/`C` (reduce by executed
+shares, remove at zero), `X` (reduce by cancelled shares, remove at zero),
+`D` (remove entirely), `U` (remove old ref, insert new ref at the new
+price/shares -- side is inherited from the original order, since real ITCH
+Order Replace carries no side field of its own).
+- `orderReferenceNumber` is the key for all per-order lookups; it is unique
+per `stockLocate` for the life of the resting order.
+- `A`/`E`/`C`/`X`/`D`/`U` for a `stockLocate` with no prior `R` are ignored
+outright (not queued) -- there is no symbol to attribute them to yet.
+- `S` with `eventCode == 'C'` (End of Messages, the real ITCH 5.0 code) clears
+all book state via `reset()`. The task prompt that requested this loosely
+called the trigger "'E' (end of messages)"; real ITCH 5.0 uses `'E'` for End
+of System Hours and `'C'` for End of Messages, so `'C'` was used to stay
+spec-correct.
+- `T` (`TimestampSecondsMessage`) carries no `stockLocate` and is ignored, as
+elsewhere in this module.
+
+Deferred to Module 11: feeding `ItchBookBuilder` state into
+`InstrumentRegistry` so a real feed can drive the exchange-side book.
 
