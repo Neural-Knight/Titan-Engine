@@ -5,6 +5,8 @@
 #include <map>
 #include <unordered_map>
 
+#include "titan/core/order_types.hpp"
+
 namespace titan {
 
 enum class Side {
@@ -16,11 +18,17 @@ using OrderId = uint64_t;
 using Price = uint64_t;
 using Quantity = uint64_t;
 
+// accountId/type/tif/status are defaulted so existing 4-field aggregate
+// inits (`Order{1, Side::Buy, 100, 10}`) keep compiling unchanged.
 struct Order {
     OrderId id;
     Side side;
     Price price;
     Quantity quantity;
+    AccountId accountId{};
+    OrderType type{OrderType::Limit};
+    TimeInForce tif{TimeInForce::GTC};
+    OrderStatus status{OrderStatus::New};
 };
 
 using OrderList = std::list<Order>;

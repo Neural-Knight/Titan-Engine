@@ -1,10 +1,12 @@
 add_executable(titan_tests
 	unit/test_reference_matcher.cpp
+	unit/test_validator.cpp
+	unit/test_order_lifecycle.cpp
 )
 
 target_link_libraries(titan_tests
 	PRIVATE
-		titan_reference
+		titan_exchange
 		GTest::gtest_main
 )
 

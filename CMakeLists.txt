@@ -31,5 +31,18 @@ target_include_directories(titan_reference
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# titan_exchange: OrderManager + Validator — validation and lifecycle
+# tracking layered on top of IMatcher. Links titan_reference so callers
+# that depend on titan_exchange get the reference matcher transitively.
+add_library(titan_exchange STATIC
+	src/exchange/validator.cpp
+	src/exchange/order_manager.cpp
+)
+
+target_link_libraries(titan_exchange
+	PUBLIC
+		titan_reference
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
