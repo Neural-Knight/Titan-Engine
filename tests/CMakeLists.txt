@@ -20,6 +20,7 @@ add_executable(titan_tests
 	integration/test_itch_adapter.cpp
 	integration/test_itch_engine_parity.cpp
 	integration/test_itch_engine_parity_optimized.cpp
+	integration/test_pipeline_determinism.cpp
 	parity/test_reference_vs_optimized.cpp
 	fuzz/fuzz_order_book.cpp
 )
@@ -42,6 +43,7 @@ target_link_libraries(titan_tests
 		titan_bench
 		titan_itch
 		titan_replay
+		titan_pipeline
 		GTest::gtest_main
 )
 

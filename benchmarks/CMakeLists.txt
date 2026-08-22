@@ -51,3 +51,17 @@ target_compile_definitions(bench_allocations
 	PRIVATE
 		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
 )
+
+# Module 14: single-threaded direct replay vs StagedProcessor's SPSC pipeline.
+add_executable(bench_pipeline bench_pipeline.cpp)
+
+target_link_libraries(bench_pipeline
+	PRIVATE
+		titan_pipeline
+		titan_bench
+)
+
+target_compile_definitions(bench_pipeline
+	PRIVATE
+		TITAN_SCENARIOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/scenarios"
+)

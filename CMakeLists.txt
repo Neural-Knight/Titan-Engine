@@ -132,6 +132,25 @@ target_link_libraries(titan_replay
 		titan_exchange
 )
 
+find_package(Threads REQUIRED)
+
+# titan_pipeline: SPSC producer/consumer wrapper around InstrumentRegistry.
+add_library(titan_pipeline STATIC
+	src/pipeline/staged_processor.cpp
+)
+
+target_include_directories(titan_pipeline
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(titan_pipeline
+	PUBLIC
+		titan_exchange
+		Threads::Threads
+)
+
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 add_subdirectory(tools)

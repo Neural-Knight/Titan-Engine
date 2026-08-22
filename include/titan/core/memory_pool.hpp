@@ -8,11 +8,8 @@
 
 namespace titan {
 
-// Free-list slab pool. acquire() never fails: an empty free list grows the
-// pool by one whole slab (amortized, not per-object). release() on a pointer
-// not currently live from this pool is a no-op, not a crash (guards misuse,
-// not literal double-free of the underlying memory since it's never freed
-// until the pool itself is destroyed).
+// Free-list slab pool. acquire() never fails -- grows by one slab when empty.
+// release() on a pointer not live from this pool is a no-op, not a crash.
 template <typename T>
 class FixedObjectPool {
 public:

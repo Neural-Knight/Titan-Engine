@@ -1,11 +1,5 @@
-// Design: same std::map<Price, Level> as ReferenceMatcher (so best-of-book
-// and iteration order are identical). Each Level is a flat vector<Order*>
-// with lazy nullptr tombstoning on cancel/fill instead of a linked list;
-// Order objects themselves come from a pool (see memory_pool.hpp) so a
-// filled/canceled order's slot is reused by any future order, not just ones
-// at the same price -- unlike Module 12, per-level memory no longer grows
-// unboundedly. The vector<Order*> and the map/hashmap index nodes still
-// allocate on level open/close and per-order-id churn -- not pooled here.
+// Same std::map<Price, Level> as ReferenceMatcher, but each Level is a
+// vector<Order*> with nullptr tombstones; Order storage comes from a pool.
 #include "titan/book/optimized_matcher.hpp"
 
 #include <algorithm>

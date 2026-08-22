@@ -1,6 +1,5 @@
-// Global operator new/delete overrides, scoped to this one executable only
-// (titan_tests is a separate binary and is unaffected). Counts total heap
-// traffic during a persistent-matcher replay so pool warmup is visible.
+// Global new/delete overrides, scoped to this executable only.
+// Counts heap traffic during a persistent-matcher replay.
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
