@@ -6,6 +6,7 @@ add_executable(titan_tests
 	unit/test_ioc_orders.cpp
 	unit/test_cancel_replace.cpp
 	unit/test_stp.cpp
+	unit/test_order_entry_routing.cpp
 	fuzz/fuzz_order_book.cpp
 )
 

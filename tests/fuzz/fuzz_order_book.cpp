@@ -16,9 +16,7 @@ namespace {
 constexpr unsigned kSeed = 42;
 constexpr int kOpCount = 10000;
 
-// Fails the current test on the FIRST violation, tagging it with the
-// operation index. Same seed -> same op sequence -> same failing index,
-// so a failure here is directly reproducible.
+// Fails on the first violation, tagged with the op index for repro.
 void assertNoViolations(const std::vector<InvariantViolation>& violations, int opIndex)
 {
     if (violations.empty())
@@ -30,10 +28,8 @@ void assertNoViolations(const std::vector<InvariantViolation>& violations, int o
 
 }  // namespace
 
-// Drives ReferenceMatcher directly (no OrderManager) through kOpCount random
-// add/match/cancel operations, checking book invariants after every single
-// one. CancelReplace has no IMatcher/ReferenceMatcher equivalent, so it's
-// folded into Add for this target.
+// Drives ReferenceMatcher directly. CancelReplace has no IMatcher
+// equivalent, so it's folded into Add for this target.
 TEST(FuzzReferenceMatcher, RandomOperationsPreserveInvariants) {
 	ReferenceMatcher matcher;
 	std::mt19937 rng(kSeed);
@@ -78,9 +74,7 @@ TEST(FuzzReferenceMatcher, RandomOperationsPreserveInvariants) {
 	}
 }
 
-// Drives OrderManager through kOpCount random add/match/cancel/cancelReplace
-// operations, checking both matcher- and manager-level invariants after
-// every single one.
+// Drives OrderManager through random add/match/cancel/cancelReplace ops.
 TEST(FuzzOrderManager, RandomOperationsPreserveInvariants) {
 	ReferenceMatcher matcher;
 	OrderManager manager(matcher);

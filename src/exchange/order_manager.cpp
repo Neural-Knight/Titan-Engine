@@ -9,13 +9,7 @@ namespace titan {
 
 OrderManager::OrderManager(IMatcher& matcher) : matcher_(matcher) {}
 
-// --- resting-shadow bookkeeping ---------------------------------------------
-// A minimal (side, price) -> FIFO order-id mirror of the book, updated on
-// every rest/fill/cancel/replace this manager performs. Lets matchWithStp
-// peek the front resting order at a price level, and cancelReplace rebuild a
-// level in original order, without depending on a concrete matcher for
-// anything beyond addOrder/cancelOrder/matchOrder.
-
+// (side, price) -> FIFO order-id mirror of the book.
 void OrderManager::trackResting(const Order& order)
 {
     auto& levels = (order.side == Side::Buy) ? restingBidsAt_ : restingAsksAt_;
@@ -43,13 +37,18 @@ void OrderManager::untrackResting(OrderId id)
         eraseFrom(restingAsksAt_);
 }
 
-// --- order entry -------------------------------------------------------------
+bool OrderManager::wouldCross(const Order& order) const
+{
+    const auto& opposite = (order.side == Side::Buy) ? restingAsksAt_ : restingBidsAt_;
+    if (opposite.empty())
+        return false;
+    return (order.side == Side::Buy)
+        ? (order.price >= opposite.begin()->first)
+        : (order.price <= std::prev(opposite.end())->first);
+}
 
 AcceptResult OrderManager::addOrder(Order order)
 {
-    // addOrder is the resting path only. Market never rests; IOC must not
-    // rest — both belong on matchOrder(). Reject them here so a caller
-    // cannot silently rest a would-be-aggressive order.
     if (order.type == OrderType::Market ||
         (order.type == OrderType::Limit && order.tif == TimeInForce::IOC))
         return AcceptResult{false, RejectReason::InvalidOrderType};
@@ -58,14 +57,8 @@ AcceptResult OrderManager::addOrder(Order order)
     if (reason != RejectReason::None)
         return AcceptResult{false, reason};
 
-    order.status = OrderStatus::New;
-    matcher_.addOrder(order);
-
-    allKnownOrderIds_.insert(order.id);
-    activeOrderIds_.insert(order.id);
-    orders_[order.id] = order;
-    trackResting(order);
-
+    // matchOrder() handles crossing and non-crossing GTC limits identically.
+    matchOrder(order);
     return AcceptResult{true, RejectReason::None};
 }
 
@@ -86,7 +79,6 @@ AcceptResult OrderManager::cancelOrder(OrderId id)
 
 AcceptResult OrderManager::cancelReplace(OrderId oldId, Order newOrder)
 {
-    // The order being replaced must currently rest.
     if (activeOrderIds_.count(oldId) == 0)
         return AcceptResult{false, RejectReason::OrderNotResting};
 
@@ -94,19 +86,20 @@ AcceptResult OrderManager::cancelReplace(OrderId oldId, Order newOrder)
     if (newOrder.id != oldId)
         return AcceptResult{false, RejectReason::InvalidReplace};
 
-    // A replacement only rests; Market/IOC have no resting semantics.
     if (newOrder.type == OrderType::Market ||
         (newOrder.type == OrderType::Limit && newOrder.tif == TimeInForce::IOC))
         return AcceptResult{false, RejectReason::InvalidReplace};
 
-    // Validate as a fresh order, excluding oldId from the duplicate check
-    // (it's being replaced, not re-added as a new id). Any failure leaves
-    // the OLD order completely untouched.
+    // Exclude oldId from the duplicate-id check: it's being replaced, not re-added.
     std::unordered_set<OrderId> idsExcludingOld = allKnownOrderIds_;
     idsExcludingOld.erase(oldId);
     const RejectReason reason = validateNewOrder(newOrder, idsExcludingOld);
     if (reason != RejectReason::None)
         return AcceptResult{false, reason};
+
+    // cancelReplace only rests, never trades -- a crossing replacement is rejected.
+    if (wouldCross(newOrder))
+        return AcceptResult{false, RejectReason::ReplaceWouldCross};
 
     const Order existing = orders_.at(oldId);
     const bool samePrice = (newOrder.price == existing.price);
@@ -116,12 +109,8 @@ AcceptResult OrderManager::cancelReplace(OrderId oldId, Order newOrder)
 
     if (preservesPriority)
     {
-        // Same price, quantity decreased (or unchanged): preserve queue
-        // position. IMatcher has no in-place-mutate primitive, so the whole
-        // price level is rebuilt — cancelled and re-added in its recorded
-        // FIFO order — substituting oldId's reduced quantity. Every other
-        // order at the level keeps its exact relative slot; only oldId's
-        // size actually changes.
+        // Quantity decrease at the same price: rebuild the level in its
+        // recorded FIFO order so every other order keeps its exact slot.
         auto& levels = (newOrder.side == Side::Buy) ? restingBidsAt_ : restingAsksAt_;
         const std::vector<OrderId>& ids = levels[newOrder.price];
 
@@ -132,26 +121,20 @@ AcceptResult OrderManager::cancelReplace(OrderId oldId, Order newOrder)
         for (OrderId id : ids)
             matcher_.addOrder(orders_.at(id));
 
-        // Shadow queue order is unchanged; oldId keeps its slot and stays
-        // active — nothing else to update.
         return AcceptResult{true, RejectReason::None};
     }
 
-    // Price change, or quantity increase at the same price: full loss of
-    // priority. Remove the old resting order and insert the replacement
-    // fresh, at the back of its (possibly new) price level.
+    // Price change, or quantity increase at the same price: back of the new level.
     matcher_.cancelOrder(oldId);
     untrackResting(oldId);
 
     matcher_.addOrder(newOrder);
     orders_[oldId] = newOrder;
-    activeOrderIds_.insert(oldId);  // was already active; stays active under the same id
+    activeOrderIds_.insert(oldId);
     trackResting(newOrder);
 
     return AcceptResult{true, RejectReason::None};
 }
-
-// --- matching + self-trade prevention ---------------------------------------
 
 std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& filled)
 {
@@ -160,10 +143,6 @@ std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& f
 
     Quantity remaining = incoming.quantity;
     const bool buy = (incoming.side == Side::Buy);
-
-    // The crossing side is the opposite book: a buy lifts asks, a sell
-    // hits bids. The shadow queues mirror exactly what the real matcher
-    // holds, since this manager is the sole path to every book mutation.
     auto& levels = buy ? restingAsksAt_ : restingBidsAt_;
 
     while (remaining > 0)
@@ -171,7 +150,6 @@ std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& f
         if (levels.empty())
             break;
 
-        // Best crossable price: lowest ask for a buy, highest bid for a sell.
         auto levelIt = buy ? levels.begin() : std::prev(levels.end());
         const Price levelPrice = levelIt->first;
 
@@ -182,27 +160,19 @@ std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& f
         std::vector<OrderId>& ids = levelIt->second;
         if (ids.empty())
         {
-            levels.erase(levelIt);  // defensive: shouldn't happen, mirror is kept non-empty
+            levels.erase(levelIt);
             continue;
         }
 
         const OrderId frontId = ids.front();
         const Order& resting = orders_.at(frontId);
 
-        // STP (CancelIncoming): the front resting order at the best
-        // crossable level belongs to the same account as the incoming
-        // order. Stop matching entirely — do not skip past it to reach
-        // further liquidity, even liquidity from other accounts resting
-        // behind it. The resting order itself is left untouched.
-        // AccountId 0 means "unassigned" and never collides with itself.
+        // Stop entirely at the first same-account collision.
         if (incoming.accountId != 0 && resting.accountId == incoming.accountId)
             break;
 
-        // Cross exactly this one resting order: a probe sized to whichever
-        // side is smaller always fully consumes itself in a single trade
-        // against `resting` (never leaving a remainder for the real
-        // matcher to rest), so this never creates book state we'd need to
-        // clean up afterward.
+        // Probe sized to the smaller side always fully consumes itself in
+        // one trade against `resting`, so nothing partial is left to rest.
         const Quantity chunk = std::min(remaining, resting.quantity);
 
         Order probe = incoming;
@@ -210,7 +180,7 @@ std::vector<Trade> OrderManager::matchWithStp(const Order& incoming, Quantity& f
 
         const std::vector<Trade> trades = matcher_.matchOrder(probe);
         if (trades.empty())
-            break;  // defensive: shadow desynced from the real book, stop rather than loop forever
+            break;  // shadow desynced from the real book; stop rather than loop forever
 
         for (const Trade& trade : trades)
         {
@@ -246,8 +216,6 @@ std::vector<Trade> OrderManager::matchOrder(Order order)
     if (reason != RejectReason::None)
         return {};
 
-    // Market never rests, regardless of tif; IOC Limit never rests either.
-    // GTC Limit is the only combination allowed to rest a remainder.
     const bool isMarket = order.type == OrderType::Market;
     const bool mayRest = !isMarket && order.tif != TimeInForce::IOC;
 
@@ -264,7 +232,11 @@ std::vector<Trade> OrderManager::matchOrder(Order order)
 
     const Quantity remaining = originalQuantity - filled;
 
-    if (remaining > 0 && mayRest)
+    // A GTC remainder only rests if it wouldn't cross; STP-blocked crossing
+    // remainders are cancelled instead.
+    const bool rests = mayRest && remaining > 0 && !wouldCross(order);
+
+    if (rests)
     {
         Order resting = order;
         resting.quantity = remaining;
@@ -278,7 +250,7 @@ std::vector<Trade> OrderManager::matchOrder(Order order)
     snapshot.quantity = remaining;
     if (remaining == 0)
         snapshot.status = OrderStatus::Filled;
-    else if (!mayRest)
+    else if (!rests)
         snapshot.status = (filled > 0) ? OrderStatus::Filled : OrderStatus::Cancelled;
     else
         snapshot.status = (filled > 0) ? OrderStatus::PartiallyFilled : OrderStatus::New;

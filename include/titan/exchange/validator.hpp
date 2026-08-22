@@ -7,17 +7,13 @@
 
 namespace titan {
 
-// Stateless validation rules, checked before an order reaches a matcher.
-// `existingIds` is the caller's notion of "already in use" — OrderManager
-// passes all-time-seen ids for validateNewOrder (ids are never reused) and
-// currently-resting ids for validateCancel (only a resting order can be
-// cancelled).
+// Stateless validation, checked before an order reaches a matcher.
+// `existingIds`: all-time-seen ids for validateNewOrder, resting ids for validateCancel.
 
-// Checks, in order: zero quantity, zero price (Limit orders only — a
-// Market order has no limit price, so price is unchecked), duplicate id.
+// Checks zero quantity, zero price (Limit only), duplicate id.
 RejectReason validateNewOrder(const Order& order, const std::unordered_set<OrderId>& existingIds);
 
-// Unknown id -> RejectReason::UnknownOrder; otherwise RejectReason::None.
+// Unknown id -> RejectReason::UnknownOrder.
 RejectReason validateCancel(OrderId id, const std::unordered_set<OrderId>& existingIds);
 
 }  // namespace titan

@@ -4,21 +4,11 @@
 
 #include "titan/core/types.hpp"
 
-// Random order/operation generators for the Module 5 fuzz harness. Not a
-// production header — lives under tests/fuzz and is included directly by
-// fuzz test .cpp files.
+// Random order/operation generators for the fuzz harness.
 namespace titan::fuzz {
 
-// Random order over a small, deliberately-collision-prone space so
-// crossing/FIFO/priority logic actually gets exercised: price in [1,200],
-// quantity in [1,1000]. `id` is the caller's choice (usually a monotonic
-// counter) so callers control uniqueness/duplication.
-//
-// A few low-probability mutations are layered on top specifically to
-// exercise validation-rejection paths, which a purely "always valid"
-// generator would never touch:
-//   - ~5% zero quantity              (-> RejectReason::ZeroQuantity)
-//   - ~5% zero price on a Limit order (-> RejectReason::ZeroPrice)
+// Small, collision-prone space (price 1-200, qty 1-1000) so crossing/FIFO
+// logic gets exercised. ~5% zero quantity, ~5% zero price, to hit rejects too.
 inline Order randomOrder(std::mt19937& rng, OrderId id)
 {
     std::uniform_int_distribution<int> sideDist(0, 1);
@@ -55,8 +45,7 @@ enum class FuzzOp {
     CancelReplace
 };
 
-// Weighted towards Add so the book actually stays populated enough for
-// Match/Cancel/CancelReplace to have something to act on.
+// Weighted towards Add so the book stays populated for the other ops.
 inline FuzzOp randomOp(std::mt19937& rng)
 {
     std::uniform_int_distribution<int> dist(0, 99);

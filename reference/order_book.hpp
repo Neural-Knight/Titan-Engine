@@ -6,9 +6,8 @@
 
 namespace titan {
 
-// ReferenceMatcher — the correctness oracle. Simple std::map/std::list
-// price-time-priority book. Do not optimize; this is what optimized
-// implementations are checked against (see Module 12 parity tests).
+// ReferenceMatcher — the correctness oracle. Price-time-priority book.
+// Do not optimize; optimized implementations are checked against this.
 class ReferenceMatcher : public IMatcher {
 public:
     void addOrder(const Order& order) override;
@@ -18,9 +17,7 @@ public:
     Price bestBid() const override;
     Price bestAsk() const override;
 
-    // Introspection helpers for tests/tools. Not part of IMatcher, since
-    // exposing raw internal containers isn't a contract every matcher
-    // implementation should be forced to provide.
+    // Test/tool introspection only, not part of IMatcher.
     const PriceLevels& getBids() const;
     const PriceLevels& getAsks() const;
     const std::unordered_map<OrderId, OrderLocation>& getOrderTable() const;
@@ -31,6 +28,8 @@ private:
     std::unordered_map<OrderId, OrderLocation> orderTable;
 
     void removeOrder(OrderId id);
+    void restOrder(const Order& order);
+    std::vector<Trade> cross(Order& incoming);
 };
 
 }  // namespace titan

@@ -6,8 +6,7 @@ namespace titan {
 
 namespace {
 
-// Deep structural checks, only possible against the concrete
-// ReferenceMatcher (IMatcher alone exposes no book introspection).
+// Deep structural checks, only possible against the concrete ReferenceMatcher.
 void checkReferenceMatcherInvariants(const ReferenceMatcher& matcher,
                                       std::vector<InvariantViolation>& violations)
 {
@@ -25,9 +24,6 @@ void checkReferenceMatcherInvariants(const ReferenceMatcher& matcher,
             const Price price = levelEntry.first;
             const OrderList& orders = levelEntry.second;
 
-            // Structurally guaranteed by std::map's key ordering today, but
-            // asserted anyway as a regression net in case the container
-            // backing PriceLevels ever changes.
             if (!first && price <= previous)
             {
                 violations.push_back({"PriceLevelsOrdered",
@@ -79,6 +75,17 @@ void checkReferenceMatcherInvariants(const ReferenceMatcher& matcher,
                     std::to_string(location.it->id)});
         }
     }
+
+    if (!bids.empty() && !asks.empty())
+    {
+        const Price bid = matcher.bestBid();
+        const Price ask = matcher.bestAsk();
+        if (!(bid < ask))
+        {
+            violations.push_back({"NoCrossedBookAtRest",
+                "bestBid=" + std::to_string(bid) + " bestAsk=" + std::to_string(ask)});
+        }
+    }
 }
 
 }  // namespace
@@ -86,18 +93,6 @@ void checkReferenceMatcherInvariants(const ReferenceMatcher& matcher,
 std::vector<InvariantViolation> checkInvariants(const IMatcher& matcher)
 {
     std::vector<InvariantViolation> violations;
-
-    // Deliberately NOT checked here: "no crossed book at rest"
-    // (bestBid < bestAsk). It looked like an obvious invariant, but
-    // addOrder() is documented (i_matcher.hpp) as an unconditional rest
-    // that "does not attempt to cross" -- every existing test (Modules
-    // 1-4) relies on exactly that to seed arbitrary book states, e.g.
-    // addOrder(Sell @ 50) then addOrder(Buy @ 100) is valid and produces a
-    // genuinely crossed book on purpose. Fuzzing addOrder() with random
-    // prices confirmed this: it's the documented contract working
-    // correctly, not a bug. Non-crossing is only a property of what
-    // matchOrder() produces (it rests a remainder only once it stops
-    // crossing), not of the book in general.
 
     if (const auto* reference = dynamic_cast<const ReferenceMatcher*>(&matcher))
         checkReferenceMatcherInvariants(*reference, violations);
