@@ -36,9 +36,22 @@ public:
     AcceptResult cancelOrder(OrderId id);
 
     // Validates, then matches `order` against the book. Updates status
-    // for every resting order it fills and for `order` itself (Filled if
-    // fully consumed, PartiallyFilled if a remainder now rests, New if it
-    // didn't cross at all). Returns an empty vector if `order` is rejected.
+    // for every resting order it fills.
+    //
+    // GTC Limit (the only resting type): Filled if fully consumed,
+    // PartiallyFilled if a remainder now rests, New if it didn't cross
+    // at all.
+    //
+    // Market and IOC Limit never rest: Market sweeps at an OrderManager-
+    // synthesized extreme price (Price::max() for a buy, 0 for a sell) so
+    // it crosses every level on the opposite side; IOC Limit crosses at
+    // its own price like GTC. Either way, any unfilled remainder that
+    // ReferenceMatcher would otherwise rest is cancelled before this call
+    // returns, so it is never externally observable as resting. Final
+    // status is Filled if anything traded, else Cancelled — never
+    // PartiallyFilled or New.
+    //
+    // Returns an empty vector if `order` is rejected by validation.
     std::vector<Trade> matchOrder(Order order);
 
     // nullopt if `id` has never been accepted by this manager.

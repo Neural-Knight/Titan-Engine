@@ -13,7 +13,8 @@ namespace titan {
 // currently-resting ids for validateCancel (only a resting order can be
 // cancelled).
 
-// Checks, in order: zero quantity, zero price (Limit orders), duplicate id.
+// Checks, in order: zero quantity, zero price (Limit orders only — a
+// Market order has no limit price, so price is unchecked), duplicate id.
 RejectReason validateNewOrder(const Order& order, const std::unordered_set<OrderId>& existingIds);
 
 // Unknown id -> RejectReason::UnknownOrder; otherwise RejectReason::None.

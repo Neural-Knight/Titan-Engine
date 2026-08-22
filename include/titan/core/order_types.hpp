@@ -6,14 +6,18 @@ namespace titan {
 
 using AccountId = uint64_t;
 
-// Only Limit exists today. Market/IOC arrive in Module 3.
+// Market orders never rest, regardless of TimeInForce — TimeInForce is
+// meaningless on a Market order and ignored by OrderManager for it.
 enum class OrderType {
-    Limit
+    Limit,
+    Market
 };
 
-// Only GTC exists today.
+// IOC only applies to Limit orders: crossing is attempted at the limit
+// price, and any unfilled remainder is cancelled instead of resting.
 enum class TimeInForce {
-    GTC
+    GTC,
+    IOC
 };
 
 enum class OrderStatus {

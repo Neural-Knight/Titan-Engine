@@ -2,6 +2,8 @@ add_executable(titan_tests
 	unit/test_reference_matcher.cpp
 	unit/test_validator.cpp
 	unit/test_order_lifecycle.cpp
+	unit/test_market_orders.cpp
+	unit/test_ioc_orders.cpp
 )
 
 target_link_libraries(titan_tests
