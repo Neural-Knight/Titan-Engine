@@ -35,4 +35,4 @@ TEST(ThreadAffinity, PinThreadOverloadDoesNotCrash)
     worker.join();
 }
 
-}  // namespace
+}   

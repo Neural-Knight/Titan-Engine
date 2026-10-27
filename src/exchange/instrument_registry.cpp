@@ -148,4 +148,4 @@ AcceptResult InstrumentRegistry::cancelReplace(const Symbol& symbol, OrderId old
     return result;
 }
 
-}  // namespace titan
+}   

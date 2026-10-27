@@ -66,7 +66,7 @@ void BM_BurstCrossingOptimized(benchmark::State& state)
 }
 BENCHMARK(BM_BurstCrossingOptimized);
 
-}  // namespace
+}   
 
 // Same replay-latency convention as bench_match.cpp: per full replay, not per op.
 int main(int argc, char** argv)

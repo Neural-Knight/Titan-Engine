@@ -24,4 +24,4 @@ inline std::string perfStatHint(const char* binaryPath)
 #endif
 }
 
-}  // namespace titan
+}   

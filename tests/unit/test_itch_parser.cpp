@@ -166,7 +166,7 @@ std::vector<uint8_t> makeOrderExecutedWithPrice(OrderRefNumber ref, uint32_t sha
     return framed('C', payload);
 }
 
-}  // namespace
+}   
 
 TEST(ItchParser, DecodesAddOrder) {
     const auto bytes = makeAddOrder(555, 100, 1005000);

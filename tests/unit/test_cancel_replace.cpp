@@ -20,7 +20,7 @@ std::vector<OrderId> idsAtLevel(const PriceLevels &levels, Price price) {
 	return ids;
 }
 
-}  // namespace
+}   
 
 TEST(CancelReplace, PriceChangeGoesToBackOfNewLevel) {
 	ReferenceMatcher matcher;

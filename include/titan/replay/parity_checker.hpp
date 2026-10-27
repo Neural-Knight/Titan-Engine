@@ -47,4 +47,4 @@ private:
     ParityReport report_;
 };
 
-}  // namespace titan
+}   

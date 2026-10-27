@@ -94,4 +94,4 @@ void EventPublisher::handle(const OrderRejected& event)
         0, 0, 0, 0, 0, event.reason});
 }
 
-}  // namespace titan
+}   

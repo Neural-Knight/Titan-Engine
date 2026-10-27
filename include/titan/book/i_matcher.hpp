@@ -29,4 +29,4 @@ public:
     virtual std::vector<PriceLevel> askDepth(size_t maxLevels) const = 0;
 };
 
-}  // namespace titan
+}   

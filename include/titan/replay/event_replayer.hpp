@@ -33,4 +33,4 @@ private:
     size_t checkpointInterval_;
 };
 
-}  // namespace titan
+}   

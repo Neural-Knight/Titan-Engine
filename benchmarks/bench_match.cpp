@@ -66,7 +66,7 @@ void BM_BurstCrossing(benchmark::State& state)
 }
 BENCHMARK(BM_BurstCrossing);
 
-}  // namespace
+}   
 
 // Latency is per full steady_limit_flow replay, not per individual op.
 int main(int argc, char** argv)

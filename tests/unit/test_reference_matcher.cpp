@@ -56,7 +56,7 @@ Quantity quantityAtLevel(const PriceLevels &levels, Price price) {
 	return total;
 }
 
-}  // namespace
+}   
 
 TEST(OrderBookBehavior, AddOrderAppearsAtCorrectPrice) {
 	ReferenceMatcher book;

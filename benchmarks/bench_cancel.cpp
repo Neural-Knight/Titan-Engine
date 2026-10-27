@@ -60,7 +60,7 @@ void BM_CancelHeavy(benchmark::State& state)
 }
 BENCHMARK(BM_CancelHeavy);
 
-}  // namespace
+}   
 
 int main(int argc, char** argv)
 {

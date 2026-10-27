@@ -60,4 +60,4 @@ private:
     std::unordered_map<StockLocate, SymbolBook> books_;
 };
 
-}  // namespace titan
+}   

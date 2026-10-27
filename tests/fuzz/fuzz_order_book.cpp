@@ -27,7 +27,7 @@ void assertNoViolations(const std::vector<InvariantViolation>& violations, int o
            << " (" << violations.size() << " total violation(s) at this point)";
 }
 
-}  // namespace
+}   
 
 // Drives ReferenceMatcher directly. CancelReplace has no IMatcher
 // equivalent, so it's folded into Add for this target.

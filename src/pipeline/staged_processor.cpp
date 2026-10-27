@@ -12,7 +12,7 @@ uint64_t nowNanos()
 {
     return static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
 }
-}  // namespace
+}   
 
 StagedProcessor::StagedProcessor(MatcherBackend backend) : registry_(backend) {}
 
@@ -133,4 +133,4 @@ void StagedProcessor::consumerLoop()
     }
 }
 
-}  // namespace titan
+}   

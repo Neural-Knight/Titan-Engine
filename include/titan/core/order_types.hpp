@@ -41,4 +41,4 @@ enum class RejectReason {
     UnknownSymbol     // InstrumentRegistry call for a symbol with no instrument
 };
 
-}  // namespace titan
+}   

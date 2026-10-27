@@ -35,4 +35,4 @@ private:
     std::vector<Trade> cross(Order& incoming);
 };
 
-}  // namespace titan
+}   

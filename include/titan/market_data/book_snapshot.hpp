@@ -25,4 +25,4 @@ struct BookSnapshot {
     bool operator==(const BookSnapshot&) const = default;
 };
 
-}  // namespace titan
+}   

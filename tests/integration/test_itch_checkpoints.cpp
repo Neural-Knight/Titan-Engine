@@ -72,7 +72,7 @@ OrderReplaceMessage makeReplace(StockLocate locate, OrderRefNumber oldRef, Order
     return msg;
 }
 
-}  // namespace
+}   
 
 // Hand-crafted session: R, A(bid), A(ask), E(partial), X(partial),
 // U(reprice bid), D(remove ask). Checkpoints after E, U, and D.

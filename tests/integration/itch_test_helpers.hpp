@@ -85,4 +85,4 @@ inline OrderReplaceMessage makeReplace(StockLocate locate, OrderRefNumber oldRef
     return msg;
 }
 
-}  // namespace titan::test
+}   

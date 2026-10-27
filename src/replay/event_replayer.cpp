@@ -54,4 +54,4 @@ bool EventReplayer::eventLogsEqual(const std::vector<Event>& a, const std::vecto
     return a == b;
 }
 
-}  // namespace titan
+}   

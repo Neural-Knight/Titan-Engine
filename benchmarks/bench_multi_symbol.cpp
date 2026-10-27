@@ -66,7 +66,7 @@ void BM_MultiSymbolMix(benchmark::State& state)
 }
 BENCHMARK(BM_MultiSymbolMix);
 
-}  // namespace
+}   
 
 int main(int argc, char** argv)
 {

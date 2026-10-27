@@ -42,4 +42,4 @@ struct Scenario {
 // Parses the simple `key=value` text format used under benchmarks/scenarios/.
 Scenario loadScenario(const std::string& path);
 
-}  // namespace titan
+}   

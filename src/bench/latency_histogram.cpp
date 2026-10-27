@@ -49,4 +49,4 @@ double LatencyHistogram::mean() const
     return static_cast<double>(sum_) / static_cast<double>(samples_.size());
 }
 
-}  // namespace titan
+}   

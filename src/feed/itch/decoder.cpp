@@ -33,7 +33,7 @@ uint64_t readU64BE(const uint8_t* p)
     return v;
 }
 
-}  // namespace
+}   
 
 bool decodeMessage(uint8_t type, std::span<const uint8_t> payload, ItchMessage& out)
 {
@@ -183,4 +183,4 @@ bool decodeMessage(uint8_t type, std::span<const uint8_t> payload, ItchMessage& 
     }
 }
 
-}  // namespace titan
+}   

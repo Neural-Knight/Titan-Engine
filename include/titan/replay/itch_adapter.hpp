@@ -54,4 +54,4 @@ private:
     uint64_t tradeVolume_{0};
 };
 
-}  // namespace titan
+}   

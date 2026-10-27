@@ -14,7 +14,7 @@ using namespace titan;
 namespace {
 std::atomic<bool> gInterrupted{false};
 void onSignal(int) { gInterrupted.store(true); }
-}  // namespace
+}   
 
 int main(int argc, char** argv)
 {

@@ -15,7 +15,7 @@ std::string trimTrailingSpaces(const std::array<char, 8>& stock)
     return end == std::string_view::npos ? std::string{} : std::string(view.substr(0, end + 1));
 }
 
-}  // namespace
+}   
 
 void ItchBookBuilder::apply(const ItchMessage& message)
 {
@@ -186,4 +186,4 @@ void ItchBookBuilder::reset()
     books_.clear();
 }
 
-}  // namespace titan
+}   

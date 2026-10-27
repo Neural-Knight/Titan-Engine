@@ -72,4 +72,4 @@ BacktestResult BacktestRunner::replayFile(const std::string& path, IStrategy* st
     return result;
 }
 
-}  // namespace titan
+}   

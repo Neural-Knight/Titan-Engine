@@ -8,4 +8,4 @@ enum class StpMode {
     CancelIncoming
 };
 
-}  // namespace titan
+}   

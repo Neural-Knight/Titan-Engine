@@ -40,7 +40,7 @@ int connectSocket(const std::string& host, uint16_t port)
     ::freeaddrinfo(results);
     return fd;
 }
-}  // namespace
+}   
 
 SocketFeedReader::SocketFeedReader(TcpFeedConfig config, MessageCallback onMessage)
     : config_(std::move(config)), onMessage_(std::move(onMessage))
@@ -107,4 +107,4 @@ void SocketFeedReader::join()
         thread_.join();
 }
 
-}  // namespace titan
+}   

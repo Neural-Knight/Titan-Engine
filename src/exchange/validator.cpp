@@ -24,4 +24,4 @@ RejectReason validateCancel(OrderId id, const std::unordered_set<OrderId>& exist
     return RejectReason::None;
 }
 
-}  // namespace titan
+}   

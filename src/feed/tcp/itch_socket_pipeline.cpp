@@ -33,4 +33,4 @@ void ItchSocketPipeline::join()
     reader_.join();
 }
 
-}  // namespace titan
+}   

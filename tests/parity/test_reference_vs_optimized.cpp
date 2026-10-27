@@ -35,7 +35,7 @@ void expectSameSnapshot(const ReferenceMatcher& reference, const OptimizedMatche
     ASSERT_EQ(reference.askDepth(10), optimized.askDepth(10)) << "askDepth mismatch at op #" << opIndex;
 }
 
-}  // namespace
+}   
 
 TEST(ReferenceVsOptimized, RandomOperationSequenceStaysInParity)
 {

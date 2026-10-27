@@ -259,4 +259,4 @@ TEST(PipelineDeterminism, StopLeavesRegistryConsistentAndNoHang)
     EXPECT_EQ(processor.appliedSequences().size(), 2u);
 }
 
-}  // namespace
+}   

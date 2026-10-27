@@ -40,4 +40,4 @@ private:
     SocketFeedReader reader_;
 };
 
-}  // namespace titan
+}   

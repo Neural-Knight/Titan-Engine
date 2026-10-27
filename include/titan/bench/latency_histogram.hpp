@@ -26,4 +26,4 @@ private:
     uint64_t sum_{0};
 };
 
-}  // namespace titan
+}   

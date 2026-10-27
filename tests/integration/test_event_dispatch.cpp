@@ -22,7 +22,7 @@ std::vector<Event> runScript() {
     return registry.eventLog();
 }
 
-}  // namespace
+}   
 
 TEST(EventDispatch, SequenceNumbersAreMonotonic) {
     InstrumentRegistry registry;

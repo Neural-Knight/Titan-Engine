@@ -31,7 +31,7 @@ void BM_SnapshotTop10(benchmark::State& state)
 }
 BENCHMARK(BM_SnapshotTop10);
 
-}  // namespace
+}   
 
 int main(int argc, char** argv)
 {

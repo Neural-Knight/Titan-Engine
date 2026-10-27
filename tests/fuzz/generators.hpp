@@ -56,4 +56,4 @@ inline FuzzOp randomOp(std::mt19937& rng)
     return FuzzOp::CancelReplace;               // 15%
 }
 
-}  // namespace titan::fuzz
+}   

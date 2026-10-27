@@ -22,4 +22,4 @@ struct BenchResult {
 // Runs warmupIters unmeasured, then measureIters with per-call latency recorded.
 BenchResult run(const BenchConfig& config, const std::function<void()>& op);
 
-}  // namespace titan
+}   

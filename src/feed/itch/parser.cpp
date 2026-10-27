@@ -53,4 +53,4 @@ void ItchParser::reset()
     messagesSkipped_ = 0;
 }
 
-}  // namespace titan
+}   

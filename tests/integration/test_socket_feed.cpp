@@ -91,7 +91,7 @@ private:
     std::thread serverThread_;
 };
 
-}  // namespace
+}   
 
 TEST(SocketFeed, LoopbackFixtureMatchesFileParity)
 {

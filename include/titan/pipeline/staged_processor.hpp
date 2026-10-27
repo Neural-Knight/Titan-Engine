@@ -58,4 +58,4 @@ private:
     std::vector<uint64_t> appliedSequences_;
 };
 
-}  // namespace titan
+}   

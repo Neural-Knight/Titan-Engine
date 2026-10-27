@@ -8,4 +8,4 @@ namespace titan {
 bool pinCurrentThreadToCpu(int cpu);
 bool pinThread(std::thread& thread, int cpu);
 
-}  // namespace titan
+}   

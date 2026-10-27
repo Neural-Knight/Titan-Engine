@@ -160,7 +160,7 @@ std::vector<PriceLevel> depthFrom(const PriceLevels& levels, bool reverse, size_
     return result;
 }
 
-}  // namespace
+}   
 
 std::vector<PriceLevel> ReferenceMatcher::bidDepth(size_t maxLevels) const
 {
@@ -180,4 +180,4 @@ std::vector<Trade> ReferenceMatcher::matchOrder(Order incomingOrder)
     return trades;
 }
 
-}  // namespace titan
+}   

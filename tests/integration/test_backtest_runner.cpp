@@ -24,7 +24,7 @@ public:
     int bookUpdateCount{0};
 };
 
-}  // namespace
+}   
 
 TEST(BacktestRunner, FixtureFileProducesExpectedMetrics)
 {

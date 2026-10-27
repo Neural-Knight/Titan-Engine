@@ -72,4 +72,4 @@ private:
     std::vector<T*> freeList_;
 };
 
-}  // namespace titan
+}   

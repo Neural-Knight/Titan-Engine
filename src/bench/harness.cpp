@@ -27,4 +27,4 @@ BenchResult run(const BenchConfig& config, const std::function<void()>& op)
     return result;
 }
 
-}  // namespace titan
+}   

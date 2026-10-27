@@ -18,7 +18,7 @@ using namespace titan;
 namespace {
 std::atomic<uint64_t> gAllocCount{0};
 std::atomic<uint64_t> gDeallocCount{0};
-}  // namespace
+}   
 
 void* operator new(size_t size)
 {
@@ -123,7 +123,7 @@ AllocReport measureAllocs(const std::vector<ScenarioOp>& baseOps, int warmupPass
     return AllocReport{gAllocCount.load() - startAlloc, gDeallocCount.load() - startDealloc};
 }
 
-}  // namespace
+}   
 
 int main()
 {

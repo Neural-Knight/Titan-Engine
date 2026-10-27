@@ -72,7 +72,7 @@ OrderReplaceMessage makeReplace(StockLocate locate, OrderRefNumber oldRef, Order
     return msg;
 }
 
-}  // namespace
+}   
 
 TEST(ItchBookBuilder, AddThenCancelEmptiesBook)
 {

@@ -53,4 +53,4 @@ struct Trade {
     Quantity quantity;
 };
 
-}  // namespace titan
+}   

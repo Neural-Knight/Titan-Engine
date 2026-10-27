@@ -15,7 +15,7 @@ const ExecutionReport* findLast(const std::vector<ExecutionReport>& reports, Ord
     return found;
 }
 
-}  // namespace
+}   
 
 TEST(ExecutionReports, PartialFillProducesCorrectTradeReport) {
     InstrumentRegistry registry;

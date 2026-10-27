@@ -16,4 +16,4 @@ RejectReason validateNewOrder(const Order& order, const std::unordered_set<Order
 // Unknown id -> RejectReason::UnknownOrder.
 RejectReason validateCancel(OrderId id, const std::unordered_set<OrderId>& existingIds);
 
-}  // namespace titan
+}   

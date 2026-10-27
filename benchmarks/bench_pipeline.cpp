@@ -102,7 +102,7 @@ RunSummary runPipeline(const std::vector<ScenarioOp>& ops, const Symbol& symbol)
     return RunSummary{static_cast<double>(ops.size()) / seconds, std::move(latency)};
 }
 
-}  // namespace
+}   
 
 int main()
 {

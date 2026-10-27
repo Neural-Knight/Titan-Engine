@@ -21,4 +21,4 @@ std::vector<InvariantViolation> checkInvariants(const IMatcher& matcher);
 // ActiveIdsSubsetOfOrderTable, ShadowQueueMatchesMatcherFifo.
 std::vector<InvariantViolation> checkOrderManagerInvariants(const OrderManager& manager, const IMatcher& matcher);
 
-}  // namespace titan
+}   

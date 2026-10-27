@@ -147,4 +147,4 @@ std::vector<Trade> OptimizedMatcher::matchOrder(Order incomingOrder)
     return trades;
 }
 
-}  // namespace titan
+}   

@@ -42,4 +42,4 @@ private:
     BacktestConfig config_;
 };
 
-}  // namespace titan
+}   

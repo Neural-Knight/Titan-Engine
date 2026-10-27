@@ -17,7 +17,7 @@ bool pinHandleToCpu(pthread_t handle, int cpu)
     CPU_SET(cpu, &cpuset);
     return pthread_setaffinity_np(handle, sizeof(cpu_set_t), &cpuset) == 0;
 }
-}  // namespace
+}   
 
 bool pinCurrentThreadToCpu(int cpu)
 {
@@ -40,4 +40,4 @@ bool pinThread(std::thread&, int)
 }
 #endif
 
-}  // namespace titan
+}   

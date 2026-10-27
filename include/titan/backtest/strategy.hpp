@@ -16,4 +16,4 @@ public:
     virtual void onBookUpdate(const BookSnapshot&) {}
 };
 
-}  // namespace titan
+}   

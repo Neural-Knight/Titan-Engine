@@ -88,7 +88,7 @@ void checkReferenceMatcherInvariants(const ReferenceMatcher& matcher,
     }
 }
 
-}  // namespace
+}   
 
 std::vector<InvariantViolation> checkInvariants(const IMatcher& matcher)
 {
@@ -152,4 +152,4 @@ std::vector<InvariantViolation> checkOrderManagerInvariants(const OrderManager& 
     return violations;
 }
 
-}  // namespace titan
+}   

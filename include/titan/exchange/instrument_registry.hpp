@@ -60,4 +60,4 @@ private:
     uint64_t nextSequenceNumber_{0};
 };
 
-}  // namespace titan
+}   

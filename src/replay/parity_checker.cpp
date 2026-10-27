@@ -33,7 +33,7 @@ uint32_t executedSharesOf(const ItchMessage& message)
     return 0;
 }
 
-}  // namespace
+}   
 
 ParityChecker::ParityChecker(ItchBookBuilder& builder, ItchEngineAdapter& adapter, size_t checkpointInterval)
     : builder_(builder), adapter_(adapter), checkpointInterval_(checkpointInterval)
@@ -81,4 +81,4 @@ void ParityChecker::compareAllLocates()
     }
 }
 
-}  // namespace titan
+}   

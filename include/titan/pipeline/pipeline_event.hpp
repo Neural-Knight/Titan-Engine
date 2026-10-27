@@ -20,4 +20,4 @@ struct PipelineEvent {
     OrderId cancelId{0};  // CancelOrder id, or the old id for CancelReplace
 };
 
-}  // namespace titan
+}   

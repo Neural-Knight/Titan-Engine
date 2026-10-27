@@ -34,7 +34,7 @@ void printTopOfBook(const ItchBookBuilder& builder, StockLocate locate)
     std::cout << "\n";
 }
 
-}  // namespace
+}   
 
 int main(int argc, char** argv)
 {
